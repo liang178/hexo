@@ -1,0 +1,982 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="nginx,keepalived,vrrp," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="简介VRRP协议&amp;emsp;&amp;emsp;VRRP全称 Virtual Router Redundancy Protocol，即虚拟路由冗余协议。 可以认为它是实现路由器高可用的容错协议，即将N台提供相同功能的路由器组成一个路由器组(Router Group)，这个组里面有一个master和多个backup，但在外界看来就像一台一样，构成虚拟路由器，拥有一个虚拟IP（vip，也就是路由器所 在局域网">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx+Keepalived实现web服务器的高可用">
+<meta property="og:url" content="https://liang178.github.io/2016/08/11/nginx-keepalived/index.html">
+<meta property="og:site_name" content="茶栈">
+<meta property="og:description" content="简介VRRP协议&amp;emsp;&amp;emsp;VRRP全称 Virtual Router Redundancy Protocol，即虚拟路由冗余协议。 可以认为它是实现路由器高可用的容错协议，即将N台提供相同功能的路由器组成一个路由器组(Router Group)，这个组里面有一个master和多个backup，但在外界看来就像一台一样，构成虚拟路由器，拥有一个虚拟IP（vip，也就是路由器所 在局域网">
+<meta property="og:image" content="http://obbrvy8yl.bkt.clouddn.com/20160810nginx-keepalived.png">
+<meta property="og:updated_time" content="2016-08-11T06:50:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Nginx+Keepalived实现web服务器的高可用">
+<meta name="twitter:description" content="简介VRRP协议&amp;emsp;&amp;emsp;VRRP全称 Virtual Router Redundancy Protocol，即虚拟路由冗余协议。 可以认为它是实现路由器高可用的容错协议，即将N台提供相同功能的路由器组成一个路由器组(Router Group)，这个组里面有一个master和多个backup，但在外界看来就像一台一样，构成虚拟路由器，拥有一个虚拟IP（vip，也就是路由器所 在局域网">
+<meta name="twitter:image" content="http://obbrvy8yl.bkt.clouddn.com/20160810nginx-keepalived.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 6277435961672467000,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> Nginx+Keepalived实现web服务器的高可用 | 茶栈 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">茶栈</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input" placeholder="search my blog...">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Nginx+Keepalived实现web服务器的高可用
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-08-11T02:58:25-04:00" content="2016-08-11">
+              2016-08-11
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/nginx/" itemprop="url" rel="index">
+                    <span itemprop="name">nginx</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/08/11/nginx-keepalived/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/08/11/nginx-keepalived/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/08/11/nginx-keepalived/" class="leancloud_visitors" data-flag-title="Nginx+Keepalived实现web服务器的高可用">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p><strong>VRRP协议</strong><br>&emsp;&emsp;VRRP全称 Virtual Router Redundancy Protocol，即<a href="http://baike.baidu.com/view/876125.htm" target="_blank" rel="external">虚拟路由冗余协议</a>。 可以认为它是实现路由器高可用的容错协议，即将N台提供相同功能的路由器组成一个路由器组(Router Group)，这个组里面有一个master和多个backup，但在外界看来就像一台一样，构成虚拟路由器，拥有一个虚拟IP（vip，也就是路由器所 在局域网内其他机器的默认路由），占有这个IP的master实际负责ARP相应和转发IP数据包，组中的其它路由器作为备份的角色处于待命状态。 master会发组播消息，当backup在超时时间内收不到vrrp包时就认为master宕掉了，这时就需要根据VRRP的优先级来选举一个 backup当master，保证路由器的高可用。<br>&emsp;&emsp;在VRRP协议实现里，虚拟路由器使用 00-00-5E-00-01-XX 作为虚拟MAC地址，XX就是唯一的 VRID （Virtual Router IDentifier），这个地址同一时间只有一个物理路由器占用。在虚拟路由器里面的物理路由器组里面通过多播IP地址 224.0.0.18 来定时发送通告消息。每个Router都有一个 1-255 之间的优先级别，级别最高的（highest priority）将成为主控（master）路由器。通过降低master的优先权可以让处于backup状态的路由器抢占（proempt）主路由 器的状态，两个backup优先级相同的IP地址较大者为master，接管虚拟IP。<br><strong>Keepalived</strong><br>&emsp;&emsp;keepalived可以认为是VRRP协议在Linux上的实现，主要有三个模块，分别是core、check和vrrp。core模块为 keepalived的核心，负责主进程的启动、维护以及全局配置文件的加载和解析。check负责健康检查，包括常见的各种检查方式。vrrp模块是来实现VRRP协议的。<br><strong>Keepalived配置项说明</strong><br><strong>global_defs{}</strong></p>
+<ul>
+<li><strong><em>notification_email</em></strong> ： keepalived在发生诸如切换操作时需要发送email通知地址，此方式需要自建邮件服务。</li>
+<li><strong><em>router_id</em></strong> ： 机器标识，通常可设为hostname。故障发生时，邮件通知会用到</li>
+</ul>
+<p><strong>vrrp_instance{}</strong></p>
+<ul>
+<li><strong><em>state</em></strong> ： 指定instance(Initial)的初始状态，就是说在配置好后，这台服务器的初始状态就是这里指定的，但这里指定的不算，还是得要通过竞选通过优 先级来确定。如果这里设置为MASTER，但如若他的优先级不及另外一台，那么这台在发送通告时，会发送自己的优先级，另外一台发现优先级不如自己的高， 那么他会就回抢占为MASTER</li>
+<li><strong><em>interface</em></strong> ： 实例绑定的网卡，因为在配置虚拟IP的时候必须是在已有的网卡上添加的</li>
+<li><strong><em>mcast_src_ip</em></strong> ： 发送多播数据包时的源IP地址，这里注意了，这里实际上就是在那个地址上发送VRRP通告，这个非常重要，一定要选择稳定的网卡端口来发送，这里相当于 heartbeat的心跳端口，如果没有设置那么就用默认的绑定的网卡的IP，也就是interface指定的IP地址</li>
+<li><strong><em>virtual_router_id</em></strong> ： 虚拟路由ID，同组内的VRID必须相同，取值0~255</li>
+<li><strong><em>priority</em></strong> ： 设置本节点的优先级，优先级高的为master</li>
+<li><strong><em>advert_int</em></strong> ： 检查间隔，默认为1秒。这就是VRRP的定时器，MASTER每隔这样一个时间间隔，就会发送一个advertisement报文以通知组内其他路由器自己工作正常</li>
+<li><strong><em>authentication</em></strong> ： 定义认证方式和密码，主从必须一样</li>
+<li><strong><em>virtual_ipaddress</em></strong> ： 这里设置的就是VIP，也就是虚拟IP地址，他随着state的变化而增加删除，当state为master的时候就添加，当state为backup的时候删除，这里主要是有优先级来决定的，和state设置的值没有多大关系，这里可以设置多个IP地址</li>
+<li><strong><em>track_script</em></strong> ： 引用VRRP脚本，即在 vrrp_script 部分指定的名字。定期运行它们来改变优先级，并最终引发主备切换。 </li>
+<li><strong><em>notify_master</em></strong>: 指定服务器状态切换为master时执行的脚本</li>
+<li><strong><em>notify_backup</em></strong>: 指定服务器状态切换为backup时执行的脚本</li>
+<li><strong><em>notify_fault</em></strong>: 指定服务器状态出错时执行的脚本</li>
+</ul>
+<p><strong>vrrp_script{}</strong></p>
+<ul>
+<li><strong><em>script</em></strong> ： 自己写的检测脚本。也可以是一行命令如killall -0 nginx</li>
+<li><strong><em>interval</em></strong> 2 ： 每2s检测一次</li>
+<li><strong><em>weight</em></strong> -5 ： 检测失败（脚本返回非0）则优先级 -5</li>
+<li><strong><em>fall</em></strong> 2 ： 检测连续 2 次失败才算确定是真失败。会用weight减少优先级（1-255之间）</li>
+<li><strong><em>rise</em></strong> 1 ： 检测 1 次成功就算成功。但不修改优先级</li>
+</ul>
+<h4 id="系统架构图"><a href="#系统架构图" class="headerlink" title="系统架构图"></a>系统架构图</h4><p><img src="http://obbrvy8yl.bkt.clouddn.com/20160810nginx-keepalived.png" alt=""></p>
+<h4 id="系统安装步骤"><a href="#系统安装步骤" class="headerlink" title="系统安装步骤"></a>系统安装步骤</h4><h5 id="分别在两台主机上安装nginx-keepalived"><a href="#分别在两台主机上安装nginx-keepalived" class="headerlink" title="分别在两台主机上安装nginx+keepalived"></a>分别在两台主机上安装nginx+keepalived</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># wget http://nginx.org/download/nginx-1.10.1.tar.gz</div><div class="line"># tar xf nginx-1.10.1.tar.gz</div><div class="line"># cd nginx-1.10.1</div><div class="line"># ./configure --prefix=/usr/local/nginx --with-http_ssl_module --with-http_flv_module --sbin-path=/usr/sbin/nginx --with-http_stub_status_module --with-http_gzip_static_module --with-pcre</div><div class="line"># make &amp;&amp; make install</div><div class="line"># yum install keepalived</div></pre></td></tr></table></figure>
+<h5 id="编辑Master的配置文件"><a href="#编辑Master的配置文件" class="headerlink" title="编辑Master的配置文件"></a>编辑Master的配置文件</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># vim /etc/keepalived/keepalived.conf</div><div class="line">global_defs &#123;</div><div class="line">   router_id 333</div><div class="line">&#125;</div><div class="line">vrrp_script chk_nginx &#123;</div><div class="line">    script &quot;/etc/keepalived/check_nginx.sh&quot;</div><div class="line">    interval 2</div><div class="line">    weight -5</div><div class="line">    fall 3</div><div class="line">    rise 2</div><div class="line">&#125;</div><div class="line">vrrp_instance nginx &#123;</div><div class="line">    state MASTER</div><div class="line">    interface eth0</div><div class="line">    virtual_router_id 88</div><div class="line">    priority 100</div><div class="line">    advert_int 1</div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass abc123</div><div class="line">    &#125;</div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        192.168.5.18</div><div class="line">    &#125;</div><div class="line">    track_script &#123;</div><div class="line">        chk_nginx</div><div class="line">    &#125;</div><div class="line">    notify_master /etc/keepalived/master.sh</div><div class="line">    notify_backup /etc/keepalived/backup.sh</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h5 id="编辑Backup的配置文件"><a href="#编辑Backup的配置文件" class="headerlink" title="编辑Backup的配置文件"></a>编辑Backup的配置文件</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># vim /etc/keepalived/keepalived.conf</div><div class="line">global_defs &#123;</div><div class="line">   router_id 333</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script chk_nginx &#123;</div><div class="line">    script &quot;/etc/keepalived/check_nginx.sh&quot;</div><div class="line">    interval 2</div><div class="line">    weight -5</div><div class="line">    fall 3</div><div class="line">    rise 2</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance nginx &#123;</div><div class="line">    state BACKUP</div><div class="line">    interface eth0</div><div class="line">    virtual_router_id 88</div><div class="line">    priority 99</div><div class="line">    advert_int 1</div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass abc123</div><div class="line">    &#125;</div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        192.168.5.18</div><div class="line">    &#125;</div><div class="line">    track_script &#123;</div><div class="line">        chk_nginx</div><div class="line">    &#125;</div><div class="line">    notify_master /etc/keepalived/master.sh</div><div class="line">    notify_backup /etc/keepalived/backup.sh</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h5 id="调用的shell脚本"><a href="#调用的shell脚本" class="headerlink" title="调用的shell脚本"></a>调用的shell脚本</h5><ul>
+<li><p><strong><em>check_nginx.sh：</em></strong>检查nginx的健康状态，如发现nginx无法启动就关闭keepalived服务</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line">counter=$(ps -C nginx --no-heading|wc <span class="_">-l</span>)</div><div class="line"><span class="keyword">if</span> [ <span class="string">"<span class="variable">$&#123;counter&#125;</span>"</span> = <span class="string">"0"</span> ]; <span class="keyword">then</span></div><div class="line">    /usr/sbin/nginx</div><div class="line">    sleep 2</div><div class="line">    counter=$(ps -C nginx --no-heading|wc <span class="_">-l</span>)</div><div class="line">    <span class="keyword">if</span> [ <span class="string">"<span class="variable">$&#123;counter&#125;</span>"</span> = <span class="string">"0"</span> ]; <span class="keyword">then</span></div><div class="line">        /etc/init.d/keepalived stop</div><div class="line">    <span class="keyword">fi</span></div><div class="line"><span class="keyword">fi</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><strong><em>master.sh:</em></strong>服务器状态切换为master时执行的脚本，发邮件告诉管理员</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line">Date=$(date +%F<span class="string">" "</span>%T)</div><div class="line">IP=$(ifconfig eth0 |grep <span class="string">"inet addr"</span> |cut <span class="_">-d</span><span class="string">":"</span> <span class="_">-f</span>2 |awk <span class="string">'&#123;print $1&#125;'</span>)</div><div class="line">Mail=<span class="string">"abc@123.com"</span></div><div class="line">counter=$(ps -C nginx --no-heading|wc <span class="_">-l</span>)</div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$Date</span> <span class="variable">$IP</span> change to master."</span> |mail <span class="_">-s</span> <span class="string">"Master-Backup Change Status"</span> <span class="variable">$Mail</span></div><div class="line"><span class="keyword">if</span> [ <span class="string">"<span class="variable">$&#123;counter&#125;</span>"</span> = <span class="string">"0"</span> ];<span class="keyword">then</span></div><div class="line">    /usr/sbin/nginx</div><div class="line"><span class="keyword">else</span> </div><div class="line">    /usr/sbin/nginx <span class="_">-s</span> reload</div><div class="line"><span class="keyword">fi</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><strong><em>backup.sh:</em></strong>服务器状态切换为backup时执行的脚本</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line">Date=$(date +%F<span class="string">" "</span>%T)</div><div class="line">IP=$(ifconfig eth0 |grep <span class="string">"inet addr"</span> |cut <span class="_">-d</span><span class="string">":"</span> <span class="_">-f</span>2 |awk <span class="string">'&#123;print $1&#125;'</span>)</div><div class="line">Mail=<span class="string">"abc@123.com"</span></div><div class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$Date</span> <span class="variable">$IP</span> change to backup."</span> |mail <span class="_">-s</span> <span class="string">"Master-Backup Change Status"</span> <span class="variable">$Mail</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h4 id="第三方邮件报警配置"><a href="#第三方邮件报警配置" class="headerlink" title="第三方邮件报警配置"></a>第三方邮件报警配置</h4><p>&emsp;&emsp;由于keepalived发送邮件依赖于本地邮件服务，不太方便；建议使用第三方邮箱服务，可通过修改mail.rc文件实现。<br><figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /etc/mail.rc</span></div><div class="line"><span class="built_in">set</span> from=abc@123.com</div><div class="line"><span class="built_in">set</span> smtp=smtp.exmail.qq.com</div><div class="line"><span class="built_in">set</span> smtp-auth-user=abc@123.com</div><div class="line"><span class="built_in">set</span> smtp-auth-password=<span class="string">"xxx"</span></div><div class="line"><span class="built_in">set</span> smtp-auth=login</div></pre></td></tr></table></figure></p>
+<h4 id="定时同步nginx配置"><a href="#定时同步nginx配置" class="headerlink" title="定时同步nginx配置"></a>定时同步nginx配置</h4><p>&emsp;&emsp;为了保证nginx配置一致，需要定时从Master同步nginx配置到Backup，写个crontab任务即可<br><figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="comment"># crontab -e</span></div><div class="line">30 03 * * *   /usr/bin/rsync -avzP --exclude=logs /usr/<span class="built_in">local</span>/nginx 192.168.5.12:/usr/<span class="built_in">local</span> &amp;&gt; /dev/null</div></pre></td></tr></table></figure></p>
+<h4 id="验证方法"><a href="#验证方法" class="headerlink" title="验证方法"></a>验证方法</h4><h5 id="为nginx创建测试页面"><a href="#为nginx创建测试页面" class="headerlink" title="为nginx创建测试页面"></a>为nginx创建测试页面</h5><p>Master<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># echo &apos;&lt;h1&gt;node1&lt;/h1&gt;&apos; &gt; /usr/local/nginx/html/index.html</div></pre></td></tr></table></figure></p>
+<p>Backup<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># echo &apos;&lt;h1&gt;node2&lt;/h1&gt;&apos; &gt; /usr/local/nginx/html/index.html</div></pre></td></tr></table></figure></p>
+<h5 id="浏览器访问"><a href="#浏览器访问" class="headerlink" title="浏览器访问"></a>浏览器访问</h5><p>访问VIP的80端口，正常情况下会显示”node1”；手动关闭master上的nginx，并使之无法正常启动；再次访问VIP的80端口，如显示”node2”，验证成功。<br>可监控/var/log/messages日志文件，查看服务器状态变化。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+  <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+    <div>如果你觉得这篇文章对你有用，那就请博主喝杯茶吧！</div>
+    <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+      <span>赏</span>
+    </button>
+    <div id="QR" style="display: none;">
+      
+        <div id="wechat" style="display: inline-block">
+          <img id="wechat_qr" src="http://obbrvy8yl.bkt.clouddn.com/weixinpay.jpg" alt="鹌鹑仔 WeChat Pay"/>
+          <p>微信打赏</p>
+        </div>
+      
+      
+        <div id="alipay" style="display: inline-block">
+          <img id="alipay_qr" src="http://obbrvy8yl.bkt.clouddn.com/alipay.jpg" alt="鹌鹑仔 Alipay"/>
+          <p>支付宝打赏</p>
+        </div>
+      
+    </div>
+  </div>
+
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/nginx/" rel="tag">#nginx</a>
+          
+            <a href="/tags/keepalived/" rel="tag">#keepalived</a>
+          
+            <a href="/tags/vrrp/" rel="tag">#vrrp</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/08/11/lamp/" rel="next" title="LAMP运行环境搭建及部署php程序软件">
+                <i class="fa fa-chevron-left"></i> LAMP运行环境搭建及部署php程序软件
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/11/rpm/" rel="prev" title="RPM包管理">
+                RPM包管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/08/11/nginx-keepalived/"
+           data-title="Nginx+Keepalived实现web服务器的高可用" data-url="https://liang178.github.io/2016/08/11/nginx-keepalived/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://obbrvy8yl.bkt.clouddn.com/avatar344.png"
+               alt="鹌鹑仔" />
+          <p class="site-author-name" itemprop="name">鹌鹑仔</p>
+          <p class="site-description motion-element" itemprop="description">没事写写东西，集中一下注意力……</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#系统架构图"><span class="nav-number">2.</span> <span class="nav-text">系统架构图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#系统安装步骤"><span class="nav-number">3.</span> <span class="nav-text">系统安装步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#分别在两台主机上安装nginx-keepalived"><span class="nav-number">3.1.</span> <span class="nav-text">分别在两台主机上安装nginx+keepalived</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#编辑Master的配置文件"><span class="nav-number">3.2.</span> <span class="nav-text">编辑Master的配置文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#编辑Backup的配置文件"><span class="nav-number">3.3.</span> <span class="nav-text">编辑Backup的配置文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#调用的shell脚本"><span class="nav-number">3.4.</span> <span class="nav-text">调用的shell脚本</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#第三方邮件报警配置"><span class="nav-number">4.</span> <span class="nav-text">第三方邮件报警配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#定时同步nginx配置"><span class="nav-number">5.</span> <span class="nav-text">定时同步nginx配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#验证方法"><span class="nav-number">6.</span> <span class="nav-text">验证方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#为nginx创建测试页面"><span class="nav-number">6.1.</span> <span class="nav-text">为nginx创建测试页面</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#浏览器访问"><span class="nav-number">6.2.</span> <span class="nav-text">浏览器访问</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">鹌鹑仔</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">本站访客数<span class="busuanzi-value" id="busuanzi_value_site_uv"></span>人次</span>
+  
+
+  
+    <span class="site-pv">本站总访问量<span class="busuanzi-value" id="busuanzi_value_site_pv"></span>次</span>
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"liang178"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+      
+      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+      <script src="/js/src/hook-duoshuo.js"></script>
+    
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("juNBnSuKWu0fllmJyr7TXY6j-gzGzoHsz", "w8b0Lk2eVaBNrDcOv4ouC71W");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>

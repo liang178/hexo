@@ -1,0 +1,972 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="lamp,apache,php," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="前言&amp;emsp;&amp;emsp;Linux+Apache+MySQL+PHP是大多数web服务器的运行环境，能熟练配置此运行环境是每个运维的必备基本技能，本文以安装MySQL管理工具PHPmyadmin以及博客软件wordpress为例，演示编译安装LAMP运行环境的过程。
+看图
+安装步骤编译安装apr、apr-utilhttpd2.4版本依赖apr、apr-util这两个包，且版本要求高于系统自带包">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LAMP运行环境搭建及部署php程序软件">
+<meta property="og:url" content="https://liang178.github.io/2016/08/11/lamp/index.html">
+<meta property="og:site_name" content="茶栈">
+<meta property="og:description" content="前言&amp;emsp;&amp;emsp;Linux+Apache+MySQL+PHP是大多数web服务器的运行环境，能熟练配置此运行环境是每个运维的必备基本技能，本文以安装MySQL管理工具PHPmyadmin以及博客软件wordpress为例，演示编译安装LAMP运行环境的过程。
+看图
+安装步骤编译安装apr、apr-utilhttpd2.4版本依赖apr、apr-util这两个包，且版本要求高于系统自带包">
+<meta property="og:image" content="http://obbrvy8yl.bkt.clouddn.com/20160811lamp.png">
+<meta property="og:image" content="http://obbrvy8yl.bkt.clouddn.com/20160811wordpress.png">
+<meta property="og:image" content="http://obbrvy8yl.bkt.clouddn.com/20160811phpadmin.png">
+<meta property="og:updated_time" content="2016-08-11T06:50:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LAMP运行环境搭建及部署php程序软件">
+<meta name="twitter:description" content="前言&amp;emsp;&amp;emsp;Linux+Apache+MySQL+PHP是大多数web服务器的运行环境，能熟练配置此运行环境是每个运维的必备基本技能，本文以安装MySQL管理工具PHPmyadmin以及博客软件wordpress为例，演示编译安装LAMP运行环境的过程。
+看图
+安装步骤编译安装apr、apr-utilhttpd2.4版本依赖apr、apr-util这两个包，且版本要求高于系统自带包">
+<meta name="twitter:image" content="http://obbrvy8yl.bkt.clouddn.com/20160811lamp.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 6277435961672467000,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> LAMP运行环境搭建及部署php程序软件 | 茶栈 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">茶栈</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="#" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input" placeholder="search my blog...">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                LAMP运行环境搭建及部署php程序软件
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-08-11T02:58:25-04:00" content="2016-08-11">
+              2016-08-11
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/LAMP/" itemprop="url" rel="index">
+                    <span itemprop="name">LAMP</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/08/11/lamp/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/08/11/lamp/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+             <span id="/2016/08/11/lamp/" class="leancloud_visitors" data-flag-title="LAMP运行环境搭建及部署php程序软件">
+               &nbsp; | &nbsp;
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               <span class="post-meta-item-text">阅读次数 </span>
+               <span class="leancloud-visitors-count"></span>
+              </span>
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>&emsp;&emsp;Linux+Apache+MySQL+PHP是大多数web服务器的运行环境，能熟练配置此运行环境是每个运维的必备基本技能，本文以安装MySQL管理工具PHPmyadmin以及博客软件wordpress为例，演示编译安装LAMP运行环境的过程。</p>
+<h4 id="看图"><a href="#看图" class="headerlink" title="看图"></a>看图</h4><p><img src="http://obbrvy8yl.bkt.clouddn.com/20160811lamp.png" alt=""></p>
+<h4 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h4><h5 id="编译安装apr、apr-util"><a href="#编译安装apr、apr-util" class="headerlink" title="编译安装apr、apr-util"></a>编译安装apr、apr-util</h5><p>httpd2.4版本依赖apr、apr-util这两个包，且版本要求高于系统自带包，需要编译安装<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># tar xf apr-1.5.1.tar.bz2</div><div class="line"># cd apr-1.5.1</div><div class="line"># ./configure --prefix=/usr/local/apr</div><div class="line"># make &amp;&amp; make install</div><div class="line"></div><div class="line"># tar xf apr-util-1.5.3.tar.bz2</div><div class="line"># cd apr-util-1.5.3</div><div class="line"># ./configure --prefix=/usr/local/apr-util --with-apr=/usr/local/apr</div><div class="line"># make &amp;&amp; make install</div></pre></td></tr></table></figure></p>
+<h5 id="编译安装httpd"><a href="#编译安装httpd" class="headerlink" title="编译安装httpd"></a>编译安装httpd</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># tar xf httpd-2.4.10.tar.bz2</div><div class="line"># cd httpd-2.4.10</div><div class="line"># ./configure --prefix=/usr/local/apache --sysconfdir=/etc/httpd24 --enable-so \</div><div class="line">--enable-ssl --enable-cgi --enable-rewrite --with-zlib --with-pcre \</div><div class="line">--with-apr=/usr/local/apr --with-apr-util=/usr/local/apr-util \</div><div class="line">--enable-modules=most --enable-mpms-shared=all --with-mpm=event</div><div class="line"># make &amp;&amp; make install</div><div class="line"># vim /etc/profile.d/httpd24.sh</div><div class="line">export PATH=/usr/local/apache/bin:$PATH</div><div class="line"># source /etc/profile.d/httpd24.sh</div></pre></td></tr></table></figure>
+<p>提供SysV服务脚本/etc/init.d/httpd24，可从httpd的RPM包复制一份，修改一下即可<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cp /etc/init.d/httpd /etc/init.d/httpd24</div><div class="line"># vim /etc/init.d/httpd24</div><div class="line">    ……</div><div class="line">apachectl=/usr/local/apache/bin/apachectl</div><div class="line">httpd=$&#123;HTTPD-/usr/local/apache/bin/httpd&#125;</div><div class="line">pidfile=$&#123;PIDFILE-/usr/local/apache/logs/httpd.pid&#125;</div><div class="line"> </div><div class="line">    ……</div><div class="line"># chkconfig --add httpd24</div><div class="line"># chkconfig httpd24 on</div></pre></td></tr></table></figure></p>
+<h5 id="编译安装php，以fpm方式运行"><a href="#编译安装php，以fpm方式运行" class="headerlink" title="编译安装php，以fpm方式运行"></a>编译安装php，以fpm方式运行</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># tar xf php-5.4.26.tar.bz2</div><div class="line"># cd php-5.4.26</div><div class="line"># ./configure --prefix=/usr/local/php5 --with-mysql=mysqlnd --with-openssl \</div><div class="line">--with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --enable-mbstring --with-freetype-dir \</div><div class="line">--with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml  \</div><div class="line">--enable-sockets --enable-fpm --with-mcrypt  --with-config-file-path=/etc \</div><div class="line">--with-config-file-scan-dir=/etc/php.d --with-bz2</div><div class="line"># make &amp;&amp; make intall</div><div class="line"></div><div class="line"># cp sapi/fpm/init.d.php-fpm  /etc/rc.d/init.d/php-fpm</div><div class="line"># chmod +x /etc/rc.d/init.d/php-fpm</div><div class="line"># chkconfig --add php-fpm</div><div class="line"># chkconfig php-fpm on</div><div class="line"># cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf</div><div class="line"># vim /usr/local/php/etc/php-fpm.conf</div><div class="line">pm.max_children = 50</div><div class="line">pm.start_servers = 5</div><div class="line">pm.min_spare_servers = 2</div><div class="line">pm.max_spare_servers = 8</div><div class="line">pid = /usr/local/php/var/run/php-fpm.pid</div></pre></td></tr></table></figure>
+<h5 id="编译安装xcache，为php加速"><a href="#编译安装xcache，为php加速" class="headerlink" title="编译安装xcache，为php加速"></a>编译安装xcache，为php加速</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># tar xf xcache-3.2.0.tar.gz</div><div class="line"># cd xcache-3.2.0</div><div class="line"># /usr/local/php5/bin/phpize</div><div class="line"># ./configure --enable-xcache --with-php-config=/usr/local/php5/bin/php-config</div><div class="line"># make &amp;&amp; make install</div><div class="line"># mkdir /etc/php.d</div><div class="line"># cp xcache.ini /etc/php.d</div><div class="line"># vim /etc/php.d/xcache.ini</div><div class="line">extension = /usr/local/php5/lib/php/extensions/no-debug-non-zts-20121212/xcache.so</div><div class="line">#如果有多条extension，确保该条在第一位</div></pre></td></tr></table></figure>
+<h5 id="以通用二进制方式安装MySQL"><a href="#以通用二进制方式安装MySQL" class="headerlink" title="以通用二进制方式安装MySQL"></a>以通用二进制方式安装MySQL</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># useradd -r -M -s /sbin/nologin mysql</div><div class="line"># mkdir -p /mydata/data</div><div class="line"># tar xf mysql-5.6.26-linux-glibc2.5-x86_64.tar.gz -C /usr/local/</div><div class="line"># cd /usr/local/</div><div class="line"># ln -sv mysql-5.6.26-linux-glibc2.5-x86_64/ mysql</div><div class="line"># cd mysql </div><div class="line"># chown -R mysql:mysql  ./</div><div class="line"># scripts/mysql_install_db --user=mysql --datadir=/mydata/data</div><div class="line"># chown -R root  ./</div><div class="line"># cd /usr/local/mysql</div><div class="line"># cp support-files/mysql.server  /etc/rc.d/init.d/mysqld</div><div class="line"># chmod +x /etc/rc.d/init.d/mysqld</div></pre></td></tr></table></figure>
+<p>修改MySQL主配置文件<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mkdir /etc/mysql</div><div class="line"># vim /etc/mysql/my.cnf</div><div class="line">[mysqld]</div><div class="line">datadir = /mydata/data</div><div class="line">thread_concurrency = 4</div><div class="line">#CPU个数*2</div><div class="line">port = 3306</div><div class="line">server_id = 2</div><div class="line">socket = /tmp/mysql.sock</div><div class="line">character_set_server = utf8</div><div class="line">innodb_buffer_pool_size = 3G</div><div class="line">max_allowed_packet = 64M</div></pre></td></tr></table></figure></p>
+<p>创建MySQL用户<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mysql -uroot -p -e &quot;grant all on *.* to root@&apos;%&apos; identified by &apos;123456&apos;;&quot;</div><div class="line"># mysql -uroot -p -e &quot;grant all on *.* to testuser@&apos;%&apos; identified by &apos;123456&apos;;&quot;</div><div class="line"># mysql -uroot -p -e &quot;drop user &apos;&apos;@localhost;&quot;</div><div class="line"># mysql -uroot -p -e &quot;drop user &apos;&apos;@localhost.localdomain;&quot;</div></pre></td></tr></table></figure></p>
+<h5 id="写个测试页面，验证环境是否部署成功"><a href="#写个测试页面，验证环境是否部署成功" class="headerlink" title="写个测试页面，验证环境是否部署成功"></a>写个测试页面，验证环境是否部署成功</h5><figure class="highlight php"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /usr/local/apache/htdocs/index.php</span></div><div class="line"><span class="meta">&lt;?php</span></div><div class="line">  phpinfo();</div><div class="line">  $link = mysql_connect(<span class="string">'192.168.5.11'</span>,<span class="string">'testuser'</span>,<span class="string">'123456'</span>);</div><div class="line">  <span class="keyword">if</span> ($link)</div><div class="line">    <span class="keyword">echo</span> <span class="string">"Success..."</span>;</div><div class="line">  <span class="keyword">else</span></div><div class="line">    <span class="keyword">echo</span> <span class="string">"Failure..."</span>;</div><div class="line">  mysql_close();</div><div class="line"><span class="meta">?&gt;</span></div></pre></td></tr></table></figure>
+<h4 id="搭建CA证书服务器"><a href="#搭建CA证书服务器" class="headerlink" title="搭建CA证书服务器"></a>搭建CA证书服务器</h4><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># (umask 077;openssl genrsa -out /etc/pki/CA/private/cakey.pem 2048)</div><div class="line"># openssl req -new -x509 -key /etc/pki/CA/private/cakey.pem -out /etc/pki/CA/cacert.pem -days 3650</div><div class="line"># touch /etc/pki/CA/&#123;index.txt,serial&#125;</div><div class="line"># echo 01 &gt; /etc/pki/CA/serial</div></pre></td></tr></table></figure>
+<h4 id="配置httpd服务器"><a href="#配置httpd服务器" class="headerlink" title="配置httpd服务器"></a>配置httpd服务器</h4><ul>
+<li><p>生成证书请求文件，并发送给CA签署</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># openssl genrsa -out /etc/httpd24/httpd.key 2048</div><div class="line"># openssl req -new -key /etc/httpd24/httpd.key -out /etc/httpd24/httpd.csr</div><div class="line"># scp /etc/httpd24/httpd.csr root@192.168.5.12:/tmp</div></pre></td></tr></table></figure>
+</li>
+<li><p>登录CA服务器，签署证书并发回给Apache服务器</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># openssl ca -in /tmp/httpd.csr -out /tmp/httpd.crt</div><div class="line"># scp /tmp/httpd.crt root@192.168.5.10:/etc/httpd24/</div></pre></td></tr></table></figure>
+</li>
+<li><p>修改httpd主配置文件，提供虚拟主机</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /etc/httpd24/httpd.conf</span></div><div class="line"> </div><div class="line"><span class="comment">#DocumentRoot "/usr/local/apache/htdocs"</span></div><div class="line"><span class="comment">#Listen 80</span></div><div class="line"><span class="comment">#&lt;Directory /&gt;</span></div><div class="line"><span class="comment">#   AllowOverride none</span></div><div class="line"><span class="comment">#   Require all denied</span></div><div class="line"><span class="comment">#&lt;/Directory&gt;</span></div><div class="line">AddType application/x-httpd-php  .php</div><div class="line">AddType application/x-httpd-php-source  .phps</div><div class="line">DirectoryIndex  index.php  index.html</div><div class="line">Include /etc/httpd24/extra/httpd-vhosts.conf</div><div class="line"> </div><div class="line">LoadModule ssl_module modules/mod_ssl.so</div><div class="line">LoadModule proxy_module modules/mod_proxy.so</div><div class="line">LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /etc/httpd24/extra/httpd-vhosts.conf</span></div><div class="line">Listen 80</div><div class="line">Listen 443</div><div class="line">&lt;VirtualHost *:443&gt;</div><div class="line">    ServerName test.phpmyadmin.com</div><div class="line">    DocumentRoot <span class="string">"/www/pma"</span></div><div class="line">    ErrorLog <span class="string">"logs/pma-error_log"</span></div><div class="line">    CustomLog <span class="string">"logs/pma-access_log"</span> common</div><div class="line">    ProxyRequests Off</div><div class="line">    ProxyPassMatch ^/(.*\.php)$ fcgi://127.0.0.1:9000/www/pma/<span class="variable">$1</span></div><div class="line">    SSLEngine on</div><div class="line">    SSLCertificateFile <span class="string">"/etc/httpd24/httpd.crt"</span></div><div class="line">    SSLCertificateKeyFile <span class="string">"/etc/httpd24/httpd.key"</span></div><div class="line">&lt;/VirtualHost&gt;</div><div class="line"> </div><div class="line">&lt;VirtualHost *:80&gt;</div><div class="line">    ServerName test.wordpress.com</div><div class="line">    DocumentRoot <span class="string">"/www/wordpress"</span></div><div class="line">    ErrorLog <span class="string">"logs/wordpress-error_log"</span></div><div class="line">    CustomLog <span class="string">"logs/wordpress-access_log"</span> common</div><div class="line">    ProxyRequests Off</div><div class="line">    ProxyPassMatch ^/(.*\.php)$ fcgi://127.0.0.1:9000/www/wordpress/<span class="variable">$1</span></div><div class="line">&lt;/VirtualHost&gt;</div></pre></td></tr></table></figure>
+<h4 id="安装PHPmyadmin和WordPress"><a href="#安装PHPmyadmin和WordPress" class="headerlink" title="安装PHPmyadmin和WordPress"></a>安装PHPmyadmin和WordPress</h4><p>把程序包解压到指定目录<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mkdir /www</div><div class="line"># cd /www</div><div class="line"># unzip /tmp/phpMyAdmin-4.0.5-all-languages.zip</div><div class="line"># mv phpMyAdmin-4.0.5-all-languages/ pma</div><div class="line"># tar xf /tmp/wordpress-4.3.1-zh_CN.tar.gz</div></pre></td></tr></table></figure></p>
+<p>修改phpmyadmin配置文件<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cp pma/config.sample.inc.php pma/config.inc.php</div><div class="line">$cfg[&apos;Servers&apos;][$i][&apos;host&apos;] = &apos;192.168.5.10&apos;;</div><div class="line">#把主机改成IP即可</div></pre></td></tr></table></figure></p>
+<p>修改wordpress配置文件<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cp wordpress/wp-config-sample.php wordpress/wp-config.php </div><div class="line"># vim wordpress/wp-config.php</div><div class="line">// ** MySQL 设置 - 具体信息来自您正在使用的主机 ** //</div><div class="line">/** WordPress数据库的名称 */</div><div class="line">define(&apos;DB_NAME&apos;, &apos;wordpress&apos;);</div><div class="line"> </div><div class="line">/** MySQL数据库用户名 */</div><div class="line">define(&apos;DB_USER&apos;, &apos;testuser&apos;);</div><div class="line"> </div><div class="line">/** MySQL数据库密码 */</div><div class="line">define(&apos;DB_PASSWORD&apos;, &apos;123456&apos;);</div><div class="line"> </div><div class="line">/** MySQL主机 */</div><div class="line">define(&apos;DB_HOST&apos;, &apos;192.168.5.11&apos;);</div></pre></td></tr></table></figure></p>
+<p>为wordpress创建数据库<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mysql -uroot -p -e &quot;create database wordpress;&quot;</div></pre></td></tr></table></figure></p>
+<h4 id="重启服务，访问测试"><a href="#重启服务，访问测试" class="headerlink" title="重启服务，访问测试"></a>重启服务，访问测试</h4><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># service php-fpm restart</div><div class="line"># service httpd24 restart</div></pre></td></tr></table></figure>
+<p>访问wordpress<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160811wordpress.png" alt=""><br>访问phpmyadmin<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160811phpadmin.png" alt=""><br>至此，整个环境部署完成</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+      
+    </div>
+
+    <div>
+      
+        
+  <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+    <div>如果你觉得这篇文章对你有用，那就请博主喝杯茶吧！</div>
+    <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+      <span>赏</span>
+    </button>
+    <div id="QR" style="display: none;">
+      
+        <div id="wechat" style="display: inline-block">
+          <img id="wechat_qr" src="http://obbrvy8yl.bkt.clouddn.com/weixinpay.jpg" alt="鹌鹑仔 WeChat Pay"/>
+          <p>微信打赏</p>
+        </div>
+      
+      
+        <div id="alipay" style="display: inline-block">
+          <img id="alipay_qr" src="http://obbrvy8yl.bkt.clouddn.com/alipay.jpg" alt="鹌鹑仔 Alipay"/>
+          <p>支付宝打赏</p>
+        </div>
+      
+    </div>
+  </div>
+
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/lamp/" rel="tag">#lamp</a>
+          
+            <a href="/tags/apache/" rel="tag">#apache</a>
+          
+            <a href="/tags/php/" rel="tag">#php</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/08/11/elk+rabbitmq/" rel="next" title="ELK+RabbitMQ架构处理nginx及tomcat日志">
+                <i class="fa fa-chevron-left"></i> ELK+RabbitMQ架构处理nginx及tomcat日志
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/08/11/nginx-keepalived/" rel="prev" title="Nginx+Keepalived实现web服务器的高可用">
+                Nginx+Keepalived实现web服务器的高可用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/08/11/lamp/"
+           data-title="LAMP运行环境搭建及部署php程序软件" data-url="https://liang178.github.io/2016/08/11/lamp/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://obbrvy8yl.bkt.clouddn.com/avatar344.png"
+               alt="鹌鹑仔" />
+          <p class="site-author-name" itemprop="name">鹌鹑仔</p>
+          <p class="site-description motion-element" itemprop="description">没事写写东西，集中一下注意力……</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">6</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#看图"><span class="nav-number">2.</span> <span class="nav-text">看图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装步骤"><span class="nav-number">3.</span> <span class="nav-text">安装步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#编译安装apr、apr-util"><span class="nav-number">3.1.</span> <span class="nav-text">编译安装apr、apr-util</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#编译安装httpd"><span class="nav-number">3.2.</span> <span class="nav-text">编译安装httpd</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#编译安装php，以fpm方式运行"><span class="nav-number">3.3.</span> <span class="nav-text">编译安装php，以fpm方式运行</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#编译安装xcache，为php加速"><span class="nav-number">3.4.</span> <span class="nav-text">编译安装xcache，为php加速</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#以通用二进制方式安装MySQL"><span class="nav-number">3.5.</span> <span class="nav-text">以通用二进制方式安装MySQL</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#写个测试页面，验证环境是否部署成功"><span class="nav-number">3.6.</span> <span class="nav-text">写个测试页面，验证环境是否部署成功</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#搭建CA证书服务器"><span class="nav-number">4.</span> <span class="nav-text">搭建CA证书服务器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#配置httpd服务器"><span class="nav-number">5.</span> <span class="nav-text">配置httpd服务器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#安装PHPmyadmin和WordPress"><span class="nav-number">6.</span> <span class="nav-text">安装PHPmyadmin和WordPress</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重启服务，访问测试"><span class="nav-number">7.</span> <span class="nav-text">重启服务，访问测试</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">鹌鹑仔</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+<div class="busuanzi-count">
+
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">本站访客数<span class="busuanzi-value" id="busuanzi_value_site_uv"></span>人次</span>
+  
+
+  
+    <span class="site-pv">本站总访问量<span class="busuanzi-value" id="busuanzi_value_site_pv"></span>次</span>
+  
+  
+</div>
+
+
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"liang178"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+      
+      <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+      <script src="/js/src/hook-duoshuo.js"></script>
+    
+  
+
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';                
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = true;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = data.url;
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '' && data_content != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title < 0 && index_content < 0 ){
+                                isMatch = false;
+                            } else {
+                                if (index_content < 0) {
+                                    index_content = 0;
+                                }
+                                if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            }
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+                            
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').mousedown(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+  
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("juNBnSuKWu0fllmJyr7TXY6j-gzGzoHsz", "w8b0Lk2eVaBNrDcOv4ouC71W");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+</body>
+</html>

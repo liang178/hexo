@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  
+  
+    
+    <entry>
+      <title><![CDATA[yum软件包管理器]]></title>
+      <url>https://liang178.github.io/2016/08/11/yum/</url>
+      <content type="html"><![CDATA[<h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>&emsp;&emsp;Yum (Yellow dog Updater, Modified) 由Duke University团队，修改Yellow Dog Linux的Yellow Dog Updater开发而成，是一个基于 RPM 包管理的字符前端软件包管理器。能够从指定的服务器自动下载 RPM 包并且安装，可以处理依赖性关系，并且一次安装所有依赖的软件包，无须繁琐地一次次下载、安装。被Yellow Dog Linux本身，以及Fedora、Red Hat Enterprise Linux采用。<br><strong>Yum工作机制</strong></p>
+<ul>
+<li>C/S架构</li>
+<li>Server端：保存rpm包以及元数据，如：包名、版本信息、各包所包含的文件列表、依赖关系、包分组信息等。</li>
+<li>Client端：以安装过程为例<ul>
+<li>第一步：获取仓库元数据，缓存于本地，缓存目录/var/cache/yum</li>
+<li>第二步：yum客户端读取并分析本地缓存的元数据文件，结合本地系统环境做出要安装的程序包的决策，如依赖关系</li>
+<li>第三步：根据决策联系yum仓库，下载各程序包缓存到本地，一并进行安装</li>
+</ul>
+</li>
+</ul>
+<h4 id="Yum仓库"><a href="#Yum仓库" class="headerlink" title="Yum仓库"></a>Yum仓库</h4><p>可以理解为rpm包的文件服务器，repodata目录所在的父目录就是一个可用仓库。<br>自建一个yum仓库：</p>
+<ul>
+<li>把rpm包放到一个目录</li>
+<li>通过createrepo命令分析该目录的rpm包，然后生成元数据目录repodata</li>
+<li>配置yum客户端使用此仓库即可，就是这么简单。</li>
+</ul>
+<h4 id="Yum客户端"><a href="#Yum客户端" class="headerlink" title="Yum客户端"></a>Yum客户端</h4><p>&emsp;&emsp;要想通过yum管理rpm包，需要读取yum仓库的配置文件，指明仓库访问路径及各种属性信息。主配置文件：’/etc/yum.conf’；一个或多个yum仓库的配置信息可保存为一个文件，文件名以.repo结尾放到’/etc/yum.repos.d’目录下，文件格式如下：<br><figure class="highlight bash"><table><tr><td class="code"><pre><div class="line">[REPOID]</div><div class="line">name=Some name <span class="keyword">for</span> this repository    <span class="comment">#设置该yum仓库的名称</span></div><div class="line">baseurl=url://server1/path/to/repository/           <span class="comment">#方式1：指定yum仓库访问路径，支持多种url，如：ftp、nfs、http等，可指定多个url</span></div><div class="line">http://mirror.centos.org/centos/<span class="variable">$releasever</span>/os/<span class="variable">$basearch</span>/     <span class="comment">#URL中也支持$releasever 、$basearch这样的变量，指定系统版本号</span></div><div class="line">mirrorlist=/path/to/urlfile        <span class="comment">#方式2：可以将多个url写入一个文件，然后读取这个文件    </span></div><div class="line">enabled=&#123;0|1&#125;        <span class="comment">#是否启用该yum仓库，0为不启用，1为启用，默认为1</span></div><div class="line">gpgcheck=&#123;0|1&#125;       <span class="comment">#是否校验rpm包，0为不启用，1为启用</span></div><div class="line">gpgkey=URL           <span class="comment">#如果校验，指定公钥文件路径</span></div></pre></td></tr></table></figure></p>
+<p>yum配置文件中可用的四个变量：</p>
+<ul>
+<li>$releasever: 程序的版本，对Yum而言指的是redhat-release版本；只替换为主版本号，如RedHat 6.5，则替换为6; </li>
+<li>$arch: 系统架构</li>
+<li>$basearch: 系统基本架构，如i686，i586等的基本架构为i386；</li>
+<li>$uuid: </li>
+<li>$YUM0-9: 在系统中定义的环境变量，可以在yum中使用；<br>一个配置文件支持多个yum仓库<h4 id="yum命令用法"><a href="#yum命令用法" class="headerlink" title="yum命令用法"></a>yum命令用法</h4></li>
+<li><p>列出所有的repo</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum repolist  &#123;enabled|disabled|all&#125;  #enabled列出可用的，disabled列出禁用的，all列出所有(默认)</div></pre></td></tr></table></figure>
+</li>
+<li><p>列出rpm包</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum list &#123;all|installed|available&#125;    #all列出所有包(默认)，installed列出已安装的包，available列出可安装的包</div><div class="line"># yum list KEYWORD*    #列出指定前缀的所有包，支持文件名通配</div></pre></td></tr></table></figure>
+</li>
+<li><p>列出包的描述信息</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum info package_name</div></pre></td></tr></table></figure>
+</li>
+<li><p>列出包组</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum grouplist</div></pre></td></tr></table></figure>
+</li>
+<li><p>列出包组的详细信息</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum groupinfo &quot;GROUP NAME&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>清理缓存</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum clean &#123;all|packages|metadata|expire-cache|rpmdb|plugins&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装程序包</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum install package_name</div><div class="line"># yum reinstall package_name    #重新安装</div></pre></td></tr></table></figure>
+</li>
+<li><p>升级或降级程序包</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum check-update    #检查可用的升级包</div><div class="line"># yum update package_name    #可以指定升级包的版本号升级；如果不指定包名，就升级所有可用的升级包</div><div class="line"># yum downgrade package_name    #包降级</div></pre></td></tr></table></figure>
+</li>
+<li><p>卸载程序包</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum &#123;remove|erase&#125; package_name</div></pre></td></tr></table></figure>
+</li>
+<li><p>查询某文件是由哪一个包安装生成的</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum &#123;whatprovides|provides&#125; /path/to/somefile</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装包组</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum groupinstall &quot;GROUP NAME&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>卸载包组</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum groupremove &quot;GROUP NAME&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>只下载包，不安装</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yumdownloader package_name    #此命令由yum-utils包提供</div></pre></td></tr></table></figure>
+</li>
+<li><p>另外一些常用选项介绍</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">--nogpgcheck    #不对包做校验</div><div class="line">--disablerepo=[repo]    #安装时禁用某些yum仓库</div><div class="line">-y：    #对所有交互式操作返回yes</div><div class="line">[root@qin ~]# yum history    #显示yum的历史记录</div><div class="line">[root@qin ~]# yum history list X    #X是历史事务ID，显示指定事务明细操作</div><div class="line">[root@qin ~]# yum history redo X    #重新执行指定事务</div><div class="line">[root@qin ~]# yum history undo X    #回滚指定事务</div><div class="line">[root@qin ~]# yum makecache         #生成元数据</div><div class="line">[root@qin ~]# yum search  STRING    #查找包含指定关键字的包</div></pre></td></tr></table></figure></li>
+</ul>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[RPM包管理]]></title>
+      <url>https://liang178.github.io/2016/08/11/rpm/</url>
+      <content type="html"><![CDATA[<h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>&emsp;&emsp;RPM（简称RPM，全称为The RPM Package Manager）是在Linux下广泛使用的软件包管理器。RPM此名词可能是指.rpm的文件格式的软件包，也可能是指其本身的软件包管理器(RPM Package Manager)。最早由Red Hat研制，现在也由开源社区开发。RPM通常随附于Linux发行版，但也有单独将RPM作为应用软件发行的发行版（例如Gentoo）。RPM仅适用于安装用RPM来打包的软件，目前是GNU/Linux下软件包资源最丰富的软件包类型之一。</p>
+<h4 id="RPM命名格式"><a href="#RPM命名格式" class="headerlink" title="RPM命名格式"></a>RPM命名格式</h4><ul>
+<li><strong>name-version-release.arch.rpm</strong></li>
+<li><strong>name-version-release.noarch.rpm</strong></li>
+<li><strong>name-version-release.arch.src.rpm</strong><ul>
+<li><em>name:</em> 软件包名称</li>
+<li><em>version:</em> 软件的版本号，格式通常为“主版本号.次版本号.修正号”</li>
+<li><em>release:</em> rpm自身的发行号，与程序源码的发行号无关，仅用于标识对rpm包不同制作的修订；同时，release还包含此包适用的OS</li>
+<li><em>arch:</em> 适用的硬件平台，如：x86、x86_64、powerpc、noarch等</li>
+<li><em>noarch:</em> 不需要特定的硬件平台</li>
+<li><em>src:</em> 源代码包，不可直接安装</li>
+</ul>
+</li>
+<li>示例：bash-4.2.3-3.centos5.x86_64.rpm</li>
+</ul>
+<h4 id="获取RPM包的途径"><a href="#获取RPM包的途径" class="headerlink" title="获取RPM包的途径"></a>获取RPM包的途径</h4><ol>
+<li>发行的光盘或站点服务器，如<ul>
+<li><a href="http://mirrors.aliyun.com/" target="_blank" rel="external">http://mirrors.aliyun.com/</a></li>
+<li><a href="http://mirrors.163.com/" target="_blank" rel="external">http://mirrors.163.com/</a></li>
+</ul>
+</li>
+<li>项目的官网，很多开源项目都有自己的官网。</li>
+<li>第三方机构或个人制作并公开发布的rpm包，如<ul>
+<li><a href="http://rpmfind.net" target="_blank" rel="external">http://rpmfind.net</a></li>
+<li><a href="http://rpm.pbone.net" target="_blank" rel="external">http://rpm.pbone.net</a></li>
+<li><a href="https://fedoraproject.org/wiki/EPEL" target="_blank" rel="external">https://fedoraproject.org/wiki/EPEL</a></li>
+</ul>
+</li>
+</ol>
+<h4 id="rpm的命令格式"><a href="#rpm的命令格式" class="headerlink" title="rpm的命令格式"></a>rpm的命令格式</h4><ul>
+<li>rpm [option…] PACKAGE_FILE</li>
+</ul>
+<h4 id="rpm包管理"><a href="#rpm包管理" class="headerlink" title="rpm包管理"></a>rpm包管理</h4><ul>
+<li><strong>打包</strong>，制作rpm包较繁琐，此处略过。</li>
+<li><p><strong>安装</strong>，选项如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">-i：安装指定包</div><div class="line">-&#123;v|vv|vvv&#125;：显示详细安装信息，v字母越多显示越详细</div><div class="line">-h：显示进度条</div><div class="line">--nodeps：忽略依赖关系</div><div class="line">--test：仅做测试，不执行安装</div><div class="line">--replacepkgs：重新安装</div><div class="line">-ivh：常用安装组合选项</div></pre></td></tr></table></figure>
+</li>
+<li><p><strong>卸载</strong>，选项如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">-e：卸载包</div><div class="line">--nodeps：忽略依赖关系</div><div class="line">    如果被其它包所依赖：</div><div class="line">    1、将依赖于此包的所有包一并卸载</div><div class="line">    2、忽略依赖关系；能卸载，但依赖于此包程序包可能会运行不正常；</div><div class="line">    3、如果包的配置文件安装后曾被改动过，卸载时，此文件将不会卸载，而是被重命名并保留</div></pre></td></tr></table></figure>
+</li>
+<li><p><strong>升级</strong>，选项如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">-U：升级或安装</div><div class="line">-F：纯升级，前提是得有老版本</div><div class="line">--force：强制升级</div></pre></td></tr></table></figure>
+</li>
+<li><p>已安装包<strong>信息查看</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">-q：查询包是否已安装</div><div class="line">常用查询选项组合：</div><div class="line">	-qa：列出所有已安装的包</div><div class="line">	-qi：列出某已安装包的描述信息</div><div class="line">	-ql：列出某已安装包生成了哪些文件</div><div class="line">	-qc：列出某已安装包生成了哪些配置文件</div><div class="line">	-qd：列出某已安装包生成了哪些帮助文件</div><div class="line">	-qf：/path/to/some_file：查询某文件是由哪个包生成的</div><div class="line">	-qs：查询某已安装包内文件的状态，有三种：normal、not installed、replaced</div><div class="line">	-q --scripts package_name：列出某已安装包的相关脚本</div><div class="line">		脚本有四类：</div><div class="line">		preinstall：安装前脚本</div><div class="line">		postinstall: 安装后脚本</div><div class="line">		preuninstall: 卸载前脚本</div><div class="line">		postuninstall: 卸载后脚本</div></pre></td></tr></table></figure>
+</li>
+<li><p>未安装包<strong>信息查看</strong></p>
+<ul>
+<li>方法与查看已安装包信息一样，只需要加上一个”p”选项即可，如：’-qpi’，即列出未安装包的描述信息</li>
+</ul>
+</li>
+<li><p><strong>校验</strong>，包制作者制作完成之后会附加数字签名于包上；包的制作者使用单向加密提取原始数据的特征码，而后使用自己的私钥加密这段特性码，附加原始数据后面。我们在安装不明来源的rpm包时需要验证包的来源合法性、完整性。<br>验证前提：必须有可靠机制获取到包制作者的公钥；<br>验证过程：</p>
+<ul>
+<li>使用制作者的公钥解密加密的特征码，能解密则意味着来源合法；</li>
+<li>使用与制作者同样的意向加密算法提取原始数据的特征码，并与解密出来的特征作比对，相同，则意味着完整性没问题；<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">rpm --import：导入公钥，导入后即可自动检查</div><div class="line">rpm -qa gpg-pubkey：查看所有已导入的公钥</div><div class="line">rpm -qi gpg-pubkey-NAME：显示密钥的详细信息</div><div class="line">rpm --checksig package：手动检测包的合法性及完整性</div><div class="line">rpm -K package：手动检测包的合法性及完整性</div><div class="line">    rpm -K --nodigest：不检查包完整性</div><div class="line">    rpm -K --nosignature：不检查来源合法性</div><div class="line">rpm -V package_name</div><div class="line">    S file Size differs</div><div class="line">    M Mode differs (includes permissions and file type)</div><div class="line">    5 digest (formerly MD5 sum) differs</div><div class="line">    D Device major/minor number mismatch</div><div class="line">    L readLink(2) path mismatch</div><div class="line">    U User ownership differs</div><div class="line">    G Group ownership differs</div><div class="line">    T mTime differs</div><div class="line">    P caPabilities differ</div><div class="line">    某属性无变化，显示为&quot;.&quot;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p><strong>数据库管理</strong>：路径为/var/lib/rpm，保存了所有包相关信息，如：包名、包组、依赖关系、公钥文件等</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">rpm –initdb：初始化，如果没有库，会新建一个，如果有则不重建</div><div class="line">rpm –rebuiddb：重建数据库</div></pre></td></tr></table></figure></li>
+</ul>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[Nginx+Keepalived实现web服务器的高可用]]></title>
+      <url>https://liang178.github.io/2016/08/11/nginx-keepalived/</url>
+      <content type="html"><![CDATA[<h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p><strong>VRRP协议</strong><br>&emsp;&emsp;VRRP全称 Virtual Router Redundancy Protocol，即<a href="http://baike.baidu.com/view/876125.htm" target="_blank" rel="external">虚拟路由冗余协议</a>。 可以认为它是实现路由器高可用的容错协议，即将N台提供相同功能的路由器组成一个路由器组(Router Group)，这个组里面有一个master和多个backup，但在外界看来就像一台一样，构成虚拟路由器，拥有一个虚拟IP（vip，也就是路由器所 在局域网内其他机器的默认路由），占有这个IP的master实际负责ARP相应和转发IP数据包，组中的其它路由器作为备份的角色处于待命状态。 master会发组播消息，当backup在超时时间内收不到vrrp包时就认为master宕掉了，这时就需要根据VRRP的优先级来选举一个 backup当master，保证路由器的高可用。<br>&emsp;&emsp;在VRRP协议实现里，虚拟路由器使用 00-00-5E-00-01-XX 作为虚拟MAC地址，XX就是唯一的 VRID （Virtual Router IDentifier），这个地址同一时间只有一个物理路由器占用。在虚拟路由器里面的物理路由器组里面通过多播IP地址 224.0.0.18 来定时发送通告消息。每个Router都有一个 1-255 之间的优先级别，级别最高的（highest priority）将成为主控（master）路由器。通过降低master的优先权可以让处于backup状态的路由器抢占（proempt）主路由 器的状态，两个backup优先级相同的IP地址较大者为master，接管虚拟IP。<br><strong>Keepalived</strong><br>&emsp;&emsp;keepalived可以认为是VRRP协议在Linux上的实现，主要有三个模块，分别是core、check和vrrp。core模块为 keepalived的核心，负责主进程的启动、维护以及全局配置文件的加载和解析。check负责健康检查，包括常见的各种检查方式。vrrp模块是来实现VRRP协议的。<br><strong>Keepalived配置项说明</strong><br><strong>global_defs{}</strong></p>
+<ul>
+<li><strong><em>notification_email</em></strong> ： keepalived在发生诸如切换操作时需要发送email通知地址，此方式需要自建邮件服务。</li>
+<li><strong><em>router_id</em></strong> ： 机器标识，通常可设为hostname。故障发生时，邮件通知会用到</li>
+</ul>
+<p><strong>vrrp_instance{}</strong></p>
+<ul>
+<li><strong><em>state</em></strong> ： 指定instance(Initial)的初始状态，就是说在配置好后，这台服务器的初始状态就是这里指定的，但这里指定的不算，还是得要通过竞选通过优 先级来确定。如果这里设置为MASTER，但如若他的优先级不及另外一台，那么这台在发送通告时，会发送自己的优先级，另外一台发现优先级不如自己的高， 那么他会就回抢占为MASTER</li>
+<li><strong><em>interface</em></strong> ： 实例绑定的网卡，因为在配置虚拟IP的时候必须是在已有的网卡上添加的</li>
+<li><strong><em>mcast_src_ip</em></strong> ： 发送多播数据包时的源IP地址，这里注意了，这里实际上就是在那个地址上发送VRRP通告，这个非常重要，一定要选择稳定的网卡端口来发送，这里相当于 heartbeat的心跳端口，如果没有设置那么就用默认的绑定的网卡的IP，也就是interface指定的IP地址</li>
+<li><strong><em>virtual_router_id</em></strong> ： 虚拟路由ID，同组内的VRID必须相同，取值0~255</li>
+<li><strong><em>priority</em></strong> ： 设置本节点的优先级，优先级高的为master</li>
+<li><strong><em>advert_int</em></strong> ： 检查间隔，默认为1秒。这就是VRRP的定时器，MASTER每隔这样一个时间间隔，就会发送一个advertisement报文以通知组内其他路由器自己工作正常</li>
+<li><strong><em>authentication</em></strong> ： 定义认证方式和密码，主从必须一样</li>
+<li><strong><em>virtual_ipaddress</em></strong> ： 这里设置的就是VIP，也就是虚拟IP地址，他随着state的变化而增加删除，当state为master的时候就添加，当state为backup的时候删除，这里主要是有优先级来决定的，和state设置的值没有多大关系，这里可以设置多个IP地址</li>
+<li><strong><em>track_script</em></strong> ： 引用VRRP脚本，即在 vrrp_script 部分指定的名字。定期运行它们来改变优先级，并最终引发主备切换。 </li>
+<li><strong><em>notify_master</em></strong>: 指定服务器状态切换为master时执行的脚本</li>
+<li><strong><em>notify_backup</em></strong>: 指定服务器状态切换为backup时执行的脚本</li>
+<li><strong><em>notify_fault</em></strong>: 指定服务器状态出错时执行的脚本</li>
+</ul>
+<p><strong>vrrp_script{}</strong></p>
+<ul>
+<li><strong><em>script</em></strong> ： 自己写的检测脚本。也可以是一行命令如killall -0 nginx</li>
+<li><strong><em>interval</em></strong> 2 ： 每2s检测一次</li>
+<li><strong><em>weight</em></strong> -5 ： 检测失败（脚本返回非0）则优先级 -5</li>
+<li><strong><em>fall</em></strong> 2 ： 检测连续 2 次失败才算确定是真失败。会用weight减少优先级（1-255之间）</li>
+<li><strong><em>rise</em></strong> 1 ： 检测 1 次成功就算成功。但不修改优先级</li>
+</ul>
+<h4 id="系统架构图"><a href="#系统架构图" class="headerlink" title="系统架构图"></a>系统架构图</h4><p><img src="http://obbrvy8yl.bkt.clouddn.com/20160810nginx-keepalived.png" alt=""></p>
+<h4 id="系统安装步骤"><a href="#系统安装步骤" class="headerlink" title="系统安装步骤"></a>系统安装步骤</h4><h5 id="分别在两台主机上安装nginx-keepalived"><a href="#分别在两台主机上安装nginx-keepalived" class="headerlink" title="分别在两台主机上安装nginx+keepalived"></a>分别在两台主机上安装nginx+keepalived</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># wget http://nginx.org/download/nginx-1.10.1.tar.gz</div><div class="line"># tar xf nginx-1.10.1.tar.gz</div><div class="line"># cd nginx-1.10.1</div><div class="line"># ./configure --prefix=/usr/local/nginx --with-http_ssl_module --with-http_flv_module --sbin-path=/usr/sbin/nginx --with-http_stub_status_module --with-http_gzip_static_module --with-pcre</div><div class="line"># make &amp;&amp; make install</div><div class="line"># yum install keepalived</div></pre></td></tr></table></figure>
+<h5 id="编辑Master的配置文件"><a href="#编辑Master的配置文件" class="headerlink" title="编辑Master的配置文件"></a>编辑Master的配置文件</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># vim /etc/keepalived/keepalived.conf</div><div class="line">global_defs &#123;</div><div class="line">   router_id 333</div><div class="line">&#125;</div><div class="line">vrrp_script chk_nginx &#123;</div><div class="line">    script &quot;/etc/keepalived/check_nginx.sh&quot;</div><div class="line">    interval 2</div><div class="line">    weight -5</div><div class="line">    fall 3</div><div class="line">    rise 2</div><div class="line">&#125;</div><div class="line">vrrp_instance nginx &#123;</div><div class="line">    state MASTER</div><div class="line">    interface eth0</div><div class="line">    virtual_router_id 88</div><div class="line">    priority 100</div><div class="line">    advert_int 1</div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass abc123</div><div class="line">    &#125;</div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        192.168.5.18</div><div class="line">    &#125;</div><div class="line">    track_script &#123;</div><div class="line">        chk_nginx</div><div class="line">    &#125;</div><div class="line">    notify_master /etc/keepalived/master.sh</div><div class="line">    notify_backup /etc/keepalived/backup.sh</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h5 id="编辑Backup的配置文件"><a href="#编辑Backup的配置文件" class="headerlink" title="编辑Backup的配置文件"></a>编辑Backup的配置文件</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># vim /etc/keepalived/keepalived.conf</div><div class="line">global_defs &#123;</div><div class="line">   router_id 333</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_script chk_nginx &#123;</div><div class="line">    script &quot;/etc/keepalived/check_nginx.sh&quot;</div><div class="line">    interval 2</div><div class="line">    weight -5</div><div class="line">    fall 3</div><div class="line">    rise 2</div><div class="line">&#125;</div><div class="line"></div><div class="line">vrrp_instance nginx &#123;</div><div class="line">    state BACKUP</div><div class="line">    interface eth0</div><div class="line">    virtual_router_id 88</div><div class="line">    priority 99</div><div class="line">    advert_int 1</div><div class="line">    authentication &#123;</div><div class="line">        auth_type PASS</div><div class="line">        auth_pass abc123</div><div class="line">    &#125;</div><div class="line">    virtual_ipaddress &#123;</div><div class="line">        192.168.5.18</div><div class="line">    &#125;</div><div class="line">    track_script &#123;</div><div class="line">        chk_nginx</div><div class="line">    &#125;</div><div class="line">    notify_master /etc/keepalived/master.sh</div><div class="line">    notify_backup /etc/keepalived/backup.sh</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h5 id="调用的shell脚本"><a href="#调用的shell脚本" class="headerlink" title="调用的shell脚本"></a>调用的shell脚本</h5><ul>
+<li><p><strong><em>check_nginx.sh：</em></strong>检查nginx的健康状态，如发现nginx无法启动就关闭keepalived服务</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line">counter=$(ps -C nginx --no-heading|wc <span class="_">-l</span>)</div><div class="line"><span class="keyword">if</span> [ <span class="string">"<span class="variable">$&#123;counter&#125;</span>"</span> = <span class="string">"0"</span> ]; <span class="keyword">then</span></div><div class="line">    /usr/sbin/nginx</div><div class="line">    sleep 2</div><div class="line">    counter=$(ps -C nginx --no-heading|wc <span class="_">-l</span>)</div><div class="line">    <span class="keyword">if</span> [ <span class="string">"<span class="variable">$&#123;counter&#125;</span>"</span> = <span class="string">"0"</span> ]; <span class="keyword">then</span></div><div class="line">        /etc/init.d/keepalived stop</div><div class="line">    <span class="keyword">fi</span></div><div class="line"><span class="keyword">fi</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><strong><em>master.sh:</em></strong>服务器状态切换为master时执行的脚本，发邮件告诉管理员</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line">Date=$(date +%F<span class="string">" "</span>%T)</div><div class="line">IP=$(ifconfig eth0 |grep <span class="string">"inet addr"</span> |cut <span class="_">-d</span><span class="string">":"</span> <span class="_">-f</span>2 |awk <span class="string">'&#123;print $1&#125;'</span>)</div><div class="line">Mail=<span class="string">"abc@123.com"</span></div><div class="line">counter=$(ps -C nginx --no-heading|wc <span class="_">-l</span>)</div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$Date</span> <span class="variable">$IP</span> change to master."</span> |mail <span class="_">-s</span> <span class="string">"Master-Backup Change Status"</span> <span class="variable">$Mail</span></div><div class="line"><span class="keyword">if</span> [ <span class="string">"<span class="variable">$&#123;counter&#125;</span>"</span> = <span class="string">"0"</span> ];<span class="keyword">then</span></div><div class="line">    /usr/sbin/nginx</div><div class="line"><span class="keyword">else</span> </div><div class="line">    /usr/sbin/nginx <span class="_">-s</span> reload</div><div class="line"><span class="keyword">fi</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><strong><em>backup.sh:</em></strong>服务器状态切换为backup时执行的脚本</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line">Date=$(date +%F<span class="string">" "</span>%T)</div><div class="line">IP=$(ifconfig eth0 |grep <span class="string">"inet addr"</span> |cut <span class="_">-d</span><span class="string">":"</span> <span class="_">-f</span>2 |awk <span class="string">'&#123;print $1&#125;'</span>)</div><div class="line">Mail=<span class="string">"abc@123.com"</span></div><div class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$Date</span> <span class="variable">$IP</span> change to backup."</span> |mail <span class="_">-s</span> <span class="string">"Master-Backup Change Status"</span> <span class="variable">$Mail</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h4 id="第三方邮件报警配置"><a href="#第三方邮件报警配置" class="headerlink" title="第三方邮件报警配置"></a>第三方邮件报警配置</h4><p>&emsp;&emsp;由于keepalived发送邮件依赖于本地邮件服务，不太方便；建议使用第三方邮箱服务，可通过修改mail.rc文件实现。<br><figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /etc/mail.rc</span></div><div class="line"><span class="built_in">set</span> from=abc@123.com</div><div class="line"><span class="built_in">set</span> smtp=smtp.exmail.qq.com</div><div class="line"><span class="built_in">set</span> smtp-auth-user=abc@123.com</div><div class="line"><span class="built_in">set</span> smtp-auth-password=<span class="string">"xxx"</span></div><div class="line"><span class="built_in">set</span> smtp-auth=login</div></pre></td></tr></table></figure></p>
+<h4 id="定时同步nginx配置"><a href="#定时同步nginx配置" class="headerlink" title="定时同步nginx配置"></a>定时同步nginx配置</h4><p>&emsp;&emsp;为了保证nginx配置一致，需要定时从Master同步nginx配置到Backup，写个crontab任务即可<br><figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="comment"># crontab -e</span></div><div class="line">30 03 * * *   /usr/bin/rsync -avzP --exclude=logs /usr/<span class="built_in">local</span>/nginx 192.168.5.12:/usr/<span class="built_in">local</span> &amp;&gt; /dev/null</div></pre></td></tr></table></figure></p>
+<h4 id="验证方法"><a href="#验证方法" class="headerlink" title="验证方法"></a>验证方法</h4><h5 id="为nginx创建测试页面"><a href="#为nginx创建测试页面" class="headerlink" title="为nginx创建测试页面"></a>为nginx创建测试页面</h5><p>Master<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># echo &apos;&lt;h1&gt;node1&lt;/h1&gt;&apos; &gt; /usr/local/nginx/html/index.html</div></pre></td></tr></table></figure></p>
+<p>Backup<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># echo &apos;&lt;h1&gt;node2&lt;/h1&gt;&apos; &gt; /usr/local/nginx/html/index.html</div></pre></td></tr></table></figure></p>
+<h5 id="浏览器访问"><a href="#浏览器访问" class="headerlink" title="浏览器访问"></a>浏览器访问</h5><p>访问VIP的80端口，正常情况下会显示”node1”；手动关闭master上的nginx，并使之无法正常启动；再次访问VIP的80端口，如显示”node2”，验证成功。<br>可监控/var/log/messages日志文件，查看服务器状态变化。</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[LAMP运行环境搭建及部署php程序软件]]></title>
+      <url>https://liang178.github.io/2016/08/11/lamp/</url>
+      <content type="html"><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>&emsp;&emsp;Linux+Apache+MySQL+PHP是大多数web服务器的运行环境，能熟练配置此运行环境是每个运维的必备基本技能，本文以安装MySQL管理工具PHPmyadmin以及博客软件wordpress为例，演示编译安装LAMP运行环境的过程。</p>
+<h4 id="看图"><a href="#看图" class="headerlink" title="看图"></a>看图</h4><p><img src="http://obbrvy8yl.bkt.clouddn.com/20160811lamp.png" alt=""></p>
+<h4 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h4><h5 id="编译安装apr、apr-util"><a href="#编译安装apr、apr-util" class="headerlink" title="编译安装apr、apr-util"></a>编译安装apr、apr-util</h5><p>httpd2.4版本依赖apr、apr-util这两个包，且版本要求高于系统自带包，需要编译安装<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># tar xf apr-1.5.1.tar.bz2</div><div class="line"># cd apr-1.5.1</div><div class="line"># ./configure --prefix=/usr/local/apr</div><div class="line"># make &amp;&amp; make install</div><div class="line"></div><div class="line"># tar xf apr-util-1.5.3.tar.bz2</div><div class="line"># cd apr-util-1.5.3</div><div class="line"># ./configure --prefix=/usr/local/apr-util --with-apr=/usr/local/apr</div><div class="line"># make &amp;&amp; make install</div></pre></td></tr></table></figure></p>
+<h5 id="编译安装httpd"><a href="#编译安装httpd" class="headerlink" title="编译安装httpd"></a>编译安装httpd</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># tar xf httpd-2.4.10.tar.bz2</div><div class="line"># cd httpd-2.4.10</div><div class="line"># ./configure --prefix=/usr/local/apache --sysconfdir=/etc/httpd24 --enable-so \</div><div class="line">--enable-ssl --enable-cgi --enable-rewrite --with-zlib --with-pcre \</div><div class="line">--with-apr=/usr/local/apr --with-apr-util=/usr/local/apr-util \</div><div class="line">--enable-modules=most --enable-mpms-shared=all --with-mpm=event</div><div class="line"># make &amp;&amp; make install</div><div class="line"># vim /etc/profile.d/httpd24.sh</div><div class="line">export PATH=/usr/local/apache/bin:$PATH</div><div class="line"># source /etc/profile.d/httpd24.sh</div></pre></td></tr></table></figure>
+<p>提供SysV服务脚本/etc/init.d/httpd24，可从httpd的RPM包复制一份，修改一下即可<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cp /etc/init.d/httpd /etc/init.d/httpd24</div><div class="line"># vim /etc/init.d/httpd24</div><div class="line">    ……</div><div class="line">apachectl=/usr/local/apache/bin/apachectl</div><div class="line">httpd=$&#123;HTTPD-/usr/local/apache/bin/httpd&#125;</div><div class="line">pidfile=$&#123;PIDFILE-/usr/local/apache/logs/httpd.pid&#125;</div><div class="line"> </div><div class="line">    ……</div><div class="line"># chkconfig --add httpd24</div><div class="line"># chkconfig httpd24 on</div></pre></td></tr></table></figure></p>
+<h5 id="编译安装php，以fpm方式运行"><a href="#编译安装php，以fpm方式运行" class="headerlink" title="编译安装php，以fpm方式运行"></a>编译安装php，以fpm方式运行</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># tar xf php-5.4.26.tar.bz2</div><div class="line"># cd php-5.4.26</div><div class="line"># ./configure --prefix=/usr/local/php5 --with-mysql=mysqlnd --with-openssl \</div><div class="line">--with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --enable-mbstring --with-freetype-dir \</div><div class="line">--with-jpeg-dir --with-png-dir --with-zlib --with-libxml-dir=/usr --enable-xml  \</div><div class="line">--enable-sockets --enable-fpm --with-mcrypt  --with-config-file-path=/etc \</div><div class="line">--with-config-file-scan-dir=/etc/php.d --with-bz2</div><div class="line"># make &amp;&amp; make intall</div><div class="line"></div><div class="line"># cp sapi/fpm/init.d.php-fpm  /etc/rc.d/init.d/php-fpm</div><div class="line"># chmod +x /etc/rc.d/init.d/php-fpm</div><div class="line"># chkconfig --add php-fpm</div><div class="line"># chkconfig php-fpm on</div><div class="line"># cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf</div><div class="line"># vim /usr/local/php/etc/php-fpm.conf</div><div class="line">pm.max_children = 50</div><div class="line">pm.start_servers = 5</div><div class="line">pm.min_spare_servers = 2</div><div class="line">pm.max_spare_servers = 8</div><div class="line">pid = /usr/local/php/var/run/php-fpm.pid</div></pre></td></tr></table></figure>
+<h5 id="编译安装xcache，为php加速"><a href="#编译安装xcache，为php加速" class="headerlink" title="编译安装xcache，为php加速"></a>编译安装xcache，为php加速</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># tar xf xcache-3.2.0.tar.gz</div><div class="line"># cd xcache-3.2.0</div><div class="line"># /usr/local/php5/bin/phpize</div><div class="line"># ./configure --enable-xcache --with-php-config=/usr/local/php5/bin/php-config</div><div class="line"># make &amp;&amp; make install</div><div class="line"># mkdir /etc/php.d</div><div class="line"># cp xcache.ini /etc/php.d</div><div class="line"># vim /etc/php.d/xcache.ini</div><div class="line">extension = /usr/local/php5/lib/php/extensions/no-debug-non-zts-20121212/xcache.so</div><div class="line">#如果有多条extension，确保该条在第一位</div></pre></td></tr></table></figure>
+<h5 id="以通用二进制方式安装MySQL"><a href="#以通用二进制方式安装MySQL" class="headerlink" title="以通用二进制方式安装MySQL"></a>以通用二进制方式安装MySQL</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># useradd -r -M -s /sbin/nologin mysql</div><div class="line"># mkdir -p /mydata/data</div><div class="line"># tar xf mysql-5.6.26-linux-glibc2.5-x86_64.tar.gz -C /usr/local/</div><div class="line"># cd /usr/local/</div><div class="line"># ln -sv mysql-5.6.26-linux-glibc2.5-x86_64/ mysql</div><div class="line"># cd mysql </div><div class="line"># chown -R mysql:mysql  ./</div><div class="line"># scripts/mysql_install_db --user=mysql --datadir=/mydata/data</div><div class="line"># chown -R root  ./</div><div class="line"># cd /usr/local/mysql</div><div class="line"># cp support-files/mysql.server  /etc/rc.d/init.d/mysqld</div><div class="line"># chmod +x /etc/rc.d/init.d/mysqld</div></pre></td></tr></table></figure>
+<p>修改MySQL主配置文件<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mkdir /etc/mysql</div><div class="line"># vim /etc/mysql/my.cnf</div><div class="line">[mysqld]</div><div class="line">datadir = /mydata/data</div><div class="line">thread_concurrency = 4</div><div class="line">#CPU个数*2</div><div class="line">port = 3306</div><div class="line">server_id = 2</div><div class="line">socket = /tmp/mysql.sock</div><div class="line">character_set_server = utf8</div><div class="line">innodb_buffer_pool_size = 3G</div><div class="line">max_allowed_packet = 64M</div></pre></td></tr></table></figure></p>
+<p>创建MySQL用户<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mysql -uroot -p -e &quot;grant all on *.* to root@&apos;%&apos; identified by &apos;123456&apos;;&quot;</div><div class="line"># mysql -uroot -p -e &quot;grant all on *.* to testuser@&apos;%&apos; identified by &apos;123456&apos;;&quot;</div><div class="line"># mysql -uroot -p -e &quot;drop user &apos;&apos;@localhost;&quot;</div><div class="line"># mysql -uroot -p -e &quot;drop user &apos;&apos;@localhost.localdomain;&quot;</div></pre></td></tr></table></figure></p>
+<h5 id="写个测试页面，验证环境是否部署成功"><a href="#写个测试页面，验证环境是否部署成功" class="headerlink" title="写个测试页面，验证环境是否部署成功"></a>写个测试页面，验证环境是否部署成功</h5><figure class="highlight php"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /usr/local/apache/htdocs/index.php</span></div><div class="line"><span class="meta">&lt;?php</span></div><div class="line">  phpinfo();</div><div class="line">  $link = mysql_connect(<span class="string">'192.168.5.11'</span>,<span class="string">'testuser'</span>,<span class="string">'123456'</span>);</div><div class="line">  <span class="keyword">if</span> ($link)</div><div class="line">    <span class="keyword">echo</span> <span class="string">"Success..."</span>;</div><div class="line">  <span class="keyword">else</span></div><div class="line">    <span class="keyword">echo</span> <span class="string">"Failure..."</span>;</div><div class="line">  mysql_close();</div><div class="line"><span class="meta">?&gt;</span></div></pre></td></tr></table></figure>
+<h4 id="搭建CA证书服务器"><a href="#搭建CA证书服务器" class="headerlink" title="搭建CA证书服务器"></a>搭建CA证书服务器</h4><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># (umask 077;openssl genrsa -out /etc/pki/CA/private/cakey.pem 2048)</div><div class="line"># openssl req -new -x509 -key /etc/pki/CA/private/cakey.pem -out /etc/pki/CA/cacert.pem -days 3650</div><div class="line"># touch /etc/pki/CA/&#123;index.txt,serial&#125;</div><div class="line"># echo 01 &gt; /etc/pki/CA/serial</div></pre></td></tr></table></figure>
+<h4 id="配置httpd服务器"><a href="#配置httpd服务器" class="headerlink" title="配置httpd服务器"></a>配置httpd服务器</h4><ul>
+<li><p>生成证书请求文件，并发送给CA签署</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># openssl genrsa -out /etc/httpd24/httpd.key 2048</div><div class="line"># openssl req -new -key /etc/httpd24/httpd.key -out /etc/httpd24/httpd.csr</div><div class="line"># scp /etc/httpd24/httpd.csr root@192.168.5.12:/tmp</div></pre></td></tr></table></figure>
+</li>
+<li><p>登录CA服务器，签署证书并发回给Apache服务器</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># openssl ca -in /tmp/httpd.csr -out /tmp/httpd.crt</div><div class="line"># scp /tmp/httpd.crt root@192.168.5.10:/etc/httpd24/</div></pre></td></tr></table></figure>
+</li>
+<li><p>修改httpd主配置文件，提供虚拟主机</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /etc/httpd24/httpd.conf</span></div><div class="line"> </div><div class="line"><span class="comment">#DocumentRoot "/usr/local/apache/htdocs"</span></div><div class="line"><span class="comment">#Listen 80</span></div><div class="line"><span class="comment">#&lt;Directory /&gt;</span></div><div class="line"><span class="comment">#   AllowOverride none</span></div><div class="line"><span class="comment">#   Require all denied</span></div><div class="line"><span class="comment">#&lt;/Directory&gt;</span></div><div class="line">AddType application/x-httpd-php  .php</div><div class="line">AddType application/x-httpd-php-source  .phps</div><div class="line">DirectoryIndex  index.php  index.html</div><div class="line">Include /etc/httpd24/extra/httpd-vhosts.conf</div><div class="line"> </div><div class="line">LoadModule ssl_module modules/mod_ssl.so</div><div class="line">LoadModule proxy_module modules/mod_proxy.so</div><div class="line">LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /etc/httpd24/extra/httpd-vhosts.conf</span></div><div class="line">Listen 80</div><div class="line">Listen 443</div><div class="line">&lt;VirtualHost *:443&gt;</div><div class="line">    ServerName test.phpmyadmin.com</div><div class="line">    DocumentRoot <span class="string">"/www/pma"</span></div><div class="line">    ErrorLog <span class="string">"logs/pma-error_log"</span></div><div class="line">    CustomLog <span class="string">"logs/pma-access_log"</span> common</div><div class="line">    ProxyRequests Off</div><div class="line">    ProxyPassMatch ^/(.*\.php)$ fcgi://127.0.0.1:9000/www/pma/<span class="variable">$1</span></div><div class="line">    SSLEngine on</div><div class="line">    SSLCertificateFile <span class="string">"/etc/httpd24/httpd.crt"</span></div><div class="line">    SSLCertificateKeyFile <span class="string">"/etc/httpd24/httpd.key"</span></div><div class="line">&lt;/VirtualHost&gt;</div><div class="line"> </div><div class="line">&lt;VirtualHost *:80&gt;</div><div class="line">    ServerName test.wordpress.com</div><div class="line">    DocumentRoot <span class="string">"/www/wordpress"</span></div><div class="line">    ErrorLog <span class="string">"logs/wordpress-error_log"</span></div><div class="line">    CustomLog <span class="string">"logs/wordpress-access_log"</span> common</div><div class="line">    ProxyRequests Off</div><div class="line">    ProxyPassMatch ^/(.*\.php)$ fcgi://127.0.0.1:9000/www/wordpress/<span class="variable">$1</span></div><div class="line">&lt;/VirtualHost&gt;</div></pre></td></tr></table></figure>
+<h4 id="安装PHPmyadmin和WordPress"><a href="#安装PHPmyadmin和WordPress" class="headerlink" title="安装PHPmyadmin和WordPress"></a>安装PHPmyadmin和WordPress</h4><p>把程序包解压到指定目录<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mkdir /www</div><div class="line"># cd /www</div><div class="line"># unzip /tmp/phpMyAdmin-4.0.5-all-languages.zip</div><div class="line"># mv phpMyAdmin-4.0.5-all-languages/ pma</div><div class="line"># tar xf /tmp/wordpress-4.3.1-zh_CN.tar.gz</div></pre></td></tr></table></figure></p>
+<p>修改phpmyadmin配置文件<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cp pma/config.sample.inc.php pma/config.inc.php</div><div class="line">$cfg[&apos;Servers&apos;][$i][&apos;host&apos;] = &apos;192.168.5.10&apos;;</div><div class="line">#把主机改成IP即可</div></pre></td></tr></table></figure></p>
+<p>修改wordpress配置文件<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cp wordpress/wp-config-sample.php wordpress/wp-config.php </div><div class="line"># vim wordpress/wp-config.php</div><div class="line">// ** MySQL 设置 - 具体信息来自您正在使用的主机 ** //</div><div class="line">/** WordPress数据库的名称 */</div><div class="line">define(&apos;DB_NAME&apos;, &apos;wordpress&apos;);</div><div class="line"> </div><div class="line">/** MySQL数据库用户名 */</div><div class="line">define(&apos;DB_USER&apos;, &apos;testuser&apos;);</div><div class="line"> </div><div class="line">/** MySQL数据库密码 */</div><div class="line">define(&apos;DB_PASSWORD&apos;, &apos;123456&apos;);</div><div class="line"> </div><div class="line">/** MySQL主机 */</div><div class="line">define(&apos;DB_HOST&apos;, &apos;192.168.5.11&apos;);</div></pre></td></tr></table></figure></p>
+<p>为wordpress创建数据库<br><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mysql -uroot -p -e &quot;create database wordpress;&quot;</div></pre></td></tr></table></figure></p>
+<h4 id="重启服务，访问测试"><a href="#重启服务，访问测试" class="headerlink" title="重启服务，访问测试"></a>重启服务，访问测试</h4><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># service php-fpm restart</div><div class="line"># service httpd24 restart</div></pre></td></tr></table></figure>
+<p>访问wordpress<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160811wordpress.png" alt=""><br>访问phpmyadmin<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160811phpadmin.png" alt=""><br>至此，整个环境部署完成</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[ELK+RabbitMQ架构处理nginx及tomcat日志]]></title>
+      <url>https://liang178.github.io/2016/08/11/elk+rabbitmq/</url>
+      <content type="html"><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>查看日志的传统方法是：登录操作系统，使用命令工具如cat、tail、sed、awk、grep等等进行过滤输出后分析，处理少量日志还好，日志量大处理效率就没那么高了。而且很多情况下开发人员需要查看并分析日志进行排错，但他们对Linux命令又不是太熟悉，而且有时候又不能赋予他们服务器权限，更多时候是运维把日志文件导出来发给开发人员，这无疑会给我们增加工作量。ELK（Elasticsearch+Logstash+Kibana）架构就是专门为采集、分析、存储日志所设计的：</p>
+<p>Elasticsearch：基于Lucenne的搜索服务器，提供一个分布式多用户的全文搜索引擎，能过做到实时搜索。</p>
+<p>Logstash：可以对日志进行采集、过滤、输出。</p>
+<p>Kibana：可以汇总、分析、搜索日志数据并提供友好的web界面。</p>
+<p>工作流程：logstash agent监控并过滤日志，为了保证日志的完整性先将日志内容输出到RabbitMQ进行存储；logstash indexer再把RabbitMQ上的日志队列收集后发送给全文搜索服务器Elasticsearch，然后可以用Elasticsearch进行自定义搜索，再通过Kibana来结合自定义搜索进行页面展示。</p>
+<h2 id="ELK架构图"><a href="#ELK架构图" class="headerlink" title="ELK架构图"></a>ELK架构图</h2><p><img src="http://obbrvy8yl.bkt.clouddn.com/20160803layout.png" alt=""></p>
+<p>从官网下载软件logstash、elasticsearch、kibana以及JRE，分别在相应主机上安装，logstash和Elasticsearch依赖于JRE</p>
+<pre><code>wget https://download.elastic.co/kibana/kibana/kibana-4.5.3-1.x86_64.rpm
+wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/rpm/elasticsearch/2.3.4/elasticsearch-2.3.4.rpm
+wget https://download.elastic.co/logstash/logstash/packages/centos/logstash-2.3.4-1.noarch.rpm
+wget http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jre-8u101-linux-x64.rpm
+</code></pre><h2 id="RabbitMQ配置"><a href="#RabbitMQ配置" class="headerlink" title="RabbitMQ配置"></a>RabbitMQ配置</h2><p>安装RabbitMQ</p>
+<pre><code>yum install rabbitmq-server
+</code></pre><p>启用RabbitMQ的web管理功能</p>
+<pre><code>/usr/lib/rabbitmq/bin/rabbitmq-plugins enable rabbitmq_management
+/usr/lib/rabbitmq/bin/rabbitmq-plugins list
+</code></pre><p>下载并安装命令管理工具rabbitmqadmin</p>
+<pre><code>wget http://rabbitmq-server:15672/cli/rabbitmqadmin
+mv rabbitmqadmin /usr/local/bin
+chmod +x /usr/local/bin/rabbitmqadmin
+</code></pre><p>给rabbitmqadmin工具准备配置文件</p>
+<pre><code># vim /etc/mqadmin.conf
+[default]
+hostname = localhost
+port = 55672
+username = liang
+password = liang123
+</code></pre><p>创建一个vhost和user并赋权</p>
+<pre><code>rabbitmqctl add_user liang liang123
+rabbitmqctl add_vhost elk
+rabbitmqctl set_permissions -p elk liang &quot;.*&quot; &quot;.*&quot; &quot;.*&quot;
+rabbitmqctl set_user_tags liang administrator
+rabbitmqctl list_permissions -p elk
+</code></pre><p>创建一个exchange</p>
+<pre><code>rabbitmqadmin -c /etc/mqadmin.conf declare exchange --vhost=elk name=elk_exchange type=direct
+</code></pre><p>创建一个queue</p>
+<pre><code>rabbitmqadmin -c /etc/mqadmin.conf declare queue --vhost=elk name=elk_queue durable=true
+</code></pre><p>创建一个binding，绑定之前创建的exchange和queue并设置一个routing_key</p>
+<pre><code>rabbitmqadmin -c /etc/mqadmin.conf --vhost=elk declare binding source=&quot;elk_exchange&quot; destination=&quot;elk_queue&quot; routing_key=&quot;elk_key&quot;
+</code></pre><p>以上关于RabbitMQ的配置均可以通过登录web控制台进行操作，更简单方便，这里就不再演示了。</p>
+<h2 id="Elasticsearch配置"><a href="#Elasticsearch配置" class="headerlink" title="Elasticsearch配置"></a>Elasticsearch配置</h2><p>给elasticsearch安装shield插件，用于权限控制，此插件是收费产品，可免费使用30天，到期后可降级使用，只是关于集群的一些功能将不可用。</p>
+<pre><code>cd /usr/share/elasticsearch
+bin/plugin install license
+bin/plugin install shield
+</code></pre><p>如有需要修改elasticsearch.yml，配置服务监听地址，默认监听在127.0.0.1上，端口是9200和9300；配置日志数据的存储路径，默认保存在/var/lib/elasticsearch下</p>
+<pre><code>path.data: /data/elastic_data
+network.host: 192.168.X.X
+</code></pre><p>配置shield，修改shield的权限控制文件roles.yml，修改默认角色logstash的权限，指定可创建的索引文件；并添加一个readonly的角色dashboard，用于控制用户在kibana上的权限。</p>
+<pre><code>logstash:
+  cluster:
+    - manage_index_templates
+  indices:
+    - names: [ &apos;logstash-*&apos;,&apos;nginx-*&apos;,&apos;tomcat-*&apos; ]
+        privileges:
+        - write
+        - delete
+        - create_index
+
+dashboard:
+  indices:
+&apos;tomcat-*&apos;:
+  - indices:admin/mappings/fields/get
+  - indices:admin/validate/query
+  - indices:data/read/search
+  - indices:data/read/msearch
+  - indices:data/read/field_stats
+  - indices:admin/get
+&apos;.kibana&apos;:
+  - indices:admin/exists
+  - indices:admin/mappings/fields/get
+  - indices:admin/refresh
+  - indices:admin/validate/query
+  - indices:data/read/get
+  - indices:data/read/mget
+  - indices:data/read/search
+</code></pre><p>配置shield，创建用户logstash、kibana、readuser、admin并指定相应角色</p>
+<pre><code>cd /usr/share/elasticsearch/bin/shield
+./esusers useradd logstash -p 123456 -r logstash
+./esusers useradd kibana -p 123456 -r kibana4_server  
+./esusers useradd readuser -p 123456 -r dashboard
+./esusers useradd admin -p 123456 -r admin 
+</code></pre><p>启动Elasticsearch</p>
+<pre><code>service elasticsearch start
+</code></pre><h2 id="Logstash配置"><a href="#Logstash配置" class="headerlink" title="Logstash配置"></a>Logstash配置</h2><p>配置nginx服务器输出json格式日志</p>
+<pre><code>log_format json &apos;{&quot;@timestamp&quot;:&quot;$time_iso8601&quot;,&apos;
+   &apos;&quot;host&quot;:&quot;$server_addr&quot;,&apos;
+   &apos;&quot;clientip&quot;:&quot;$remote_addr&quot;,&apos; &apos;&quot;size&quot;:$body_bytes_sent,&apos;
+   &apos;&quot;responsetime&quot;:$request_time,&apos;
+   &apos;&quot;upstreamtime&quot;:&quot;$upstream_response_time&quot;,&apos;
+   &apos;&quot;upstreamhost&quot;:&quot;$upstream_addr&quot;,&apos;
+   &apos;&quot;http_host&quot;:&quot;$host&quot;,&apos;
+   &apos;&quot;url&quot;:&quot;$uri&quot;,&apos;
+   &apos;&quot;xff&quot;:&quot;$http_x_forwarded_for&quot;,&apos;
+   &apos;&quot;referer&quot;:&quot;$http_referer&quot;,&apos;
+   &apos;&quot;agent&quot;:&quot;$http_user_agent&quot;,&apos;
+   &apos;&quot;status&quot;:&quot;$status&quot;}&apos;;
+access_log  /usr/local/nginx/logs/api_json.log  json;
+</code></pre><p>配置logstash agent采集nginx日志并输出到RabbitMQ；为了排错，同时输出一份日志到本地。</p>
+<pre><code># vim /etc/logstash/conf.d/ngx_log.conf
+input {
+file {
+    path =&gt; &quot;/usr/local/nginx/logs/api_json.log&quot;
+    codec =&gt; &quot;json&quot;
+    type =&gt; &quot;nginx&quot;
+}
+}
+
+output {
+rabbitmq { 
+    host =&gt; &quot;RabbitMQ_server&quot;
+    port =&gt; &quot;5672&quot;
+    vhost =&gt; &quot;elk&quot;
+    exchange =&gt; &quot;elk_exchange&quot;
+    exchange_type =&gt; &quot;direct&quot;
+    key =&gt; &quot;elk_key&quot;
+    user =&gt; &quot;liang&quot;
+    password =&gt; &quot;liang123&quot;
+    }
+stdout { codec =&gt; rubydebug }
+}
+</code></pre><p>配置tomcat服务器输出json格式日志，修改工程的logback.xml配置文件，添加如下配置</p>
+<pre><code>&lt;appender name=&quot;LOGSTASH&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt; 
+    &lt;file&gt;${catalina.base}/logs/tomcat_json.log&lt;/file&gt;
+    &lt;encoder class=&quot;net.logstash.logback.encoder.LogstashEncoder&quot;&gt;
+        &lt;charset&gt;utf8&lt;/charset&gt;
+    &lt;/encoder&gt; 
+    &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;&gt;  
+        &lt;fileNamePattern&gt;${catalina.base}/logs/tomcat_json-%d{yyyy-MM-dd}.log&lt;/fileNamePattern&gt;  
+    &lt;/rollingPolicy&gt;  
+&lt;/appender&gt;
+&lt;root level=&quot;info&quot;&gt;
+    &lt;appender-ref ref=&quot;LOGSTASH&quot; /&gt;
+&lt;/root&gt;
+</code></pre><p>下载依赖的jar包logstash-logback-encoder到{CATALINA_BASE}/lib</p>
+<pre><code>wget http://central.maven.org/maven2/net/logstash/logback/logstash-logback-encoder/4.4/logstash-logback-encoder-4.4.jar
+</code></pre><p>配置logstash agent采集tomcat日志并输出到RabbitMQ</p>
+<pre><code># vim /etc/logstash/conf.d/tomcat_log.conf
+input {
+file {
+    path =&gt; &quot;/usr/local/tomcat/logs/tomcat_json.log&quot;
+    codec =&gt; &quot;json&quot;
+    type =&gt; &quot;tomcat&quot;
+}
+}
+
+output {
+rabbitmq { 
+    host =&gt; &quot;RabbitMQ_server&quot;
+    port =&gt; &quot;5672&quot;
+    vhost =&gt; &quot;elk&quot;
+    exchange =&gt; &quot;elk_exchange&quot;
+    exchange_type =&gt; &quot;direct&quot;
+    key =&gt; &quot;elk_key&quot;
+    user =&gt; &quot;liang&quot;
+    password =&gt; &quot;liang123&quot;
+    }
+stdout { codec =&gt; rubydebug }
+}
+</code></pre><p>配置logstash indexer把日志从RabbitMQ输出到Elasticsearch</p>
+<pre><code># vim /etc/logstash/conf.d/rabbitmq.conf
+input {
+rabbitmq {
+    host =&gt; &quot;127.0.0.1&quot;
+    subscription_retry_interval_seconds =&gt; &quot;5&quot;
+    vhost =&gt; &quot;elk&quot;
+    exchange =&gt; &quot;elk_exchange&quot;
+    queue =&gt; &quot;elk_queue&quot;
+    durable =&gt; &quot;true&quot;
+    key =&gt; &quot;elk_key&quot;
+    user =&gt; &quot;liang&quot;
+    password =&gt; &quot;liang123&quot;
+    }
+}
+output {
+if [type] == &quot;nginx&quot; {
+    elasticsearch {
+        hosts =&gt; &quot;Elasticsearch_server:9200&quot;
+        user =&gt; &quot;logstash&quot;
+        password =&gt; &quot;123456&quot;
+        index =&gt; &quot;nginx-%{+YYYY.MM.dd}&quot;
+    }
+}
+else if [type] == &quot;tomcat&quot; {
+    elasticsearch {
+        hosts =&gt; &quot;Elasticsearch_server:9200&quot;
+        user =&gt; &quot;logstash&quot;
+        password =&gt; &quot;123456&quot;
+        index =&gt; &quot;tomcat-%{+YYYY.MM.dd}&quot;
+    }
+}
+else {
+    file {
+        path =&gt; &quot;/var/log/logstash/unknown_messages.log&quot;
+        } 
+    }
+stdout { codec =&gt; rubydebug }
+}
+</code></pre><p>启动logstash服务</p>
+<pre><code>service logstash start
+</code></pre><p>在RabbitMQ服务器上查看是否接收到日志消息，登录RabbitMQ的web控制台查看详细信息。</p>
+<pre><code>rabbitmqctl list_queues -p elk
+</code></pre><h2 id="kibana配置"><a href="#kibana配置" class="headerlink" title="kibana配置"></a>kibana配置</h2><p>给kibana安装shield插件，用于权限控制</p>
+<pre><code>cd /opt/kibana/bin
+./kibana plugin --install kibana/shield/2.3.4
+</code></pre><p>修改kibana的主配置文件kibana.yml，似乎启用权限控制后强制使用https，shield的加密key可以随便指定，会话超时时间默认是30分钟，超时时间的单位为毫秒</p>
+<pre><code>elasticsearch.username: &quot;kibana&quot;
+elasticsearch.password: &quot;123456&quot;
+elasticsearch.url: &quot;http://localhost:9200&quot;
+server.ssl.cert: /opt/kibana/ssl/kibana.crt
+server.ssl.key: /opt/kibana/ssl/kibana.key
+shield.encryptionKey: &quot;abc123&quot;
+shield.sessionTimeout: 600000
+</code></pre><p>启动kibana</p>
+<pre><code>service kibana start
+</code></pre><p>kibana启用后，就可以通过<a href="https://server:5601" target="_blank" rel="external">https://server:5601</a> 进行访问了。如有需要配置Apache做个反向代理</p>
+<pre><code>NameVirtualHost *:443
+&lt;VirtualHost *:443&gt;
+ProxyRequests on
+SSLEngine on
+SSLProxyEngine on
+SSLCertificateFile /opt/kibana/ssl/kibana.crt
+SSLCertificateKeyFile /opt/kibana/ssl/kibana.key
+ProxyPass / https://127.0.0.1:5601/
+ProxyPassReverse / https://127.0.0.1:5601/
+&lt;/VirtualHost&gt;
+</code></pre><p>登录界面。</p>
+<p><img src="http://obbrvy8yl.bkt.clouddn.com/20160803login.png" alt=""></p>
+<p>填入之前定义的索引文件，就可以处理日志了。<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160803define.png" alt=""></p>
+<p>看到kibana有收到日志就算成功了。<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160803status.png" alt=""></p>
+<p>至此，整个架构部署完毕，如有错误或不足之处，欢迎指正。</p>
+]]></content>
+    </entry>
+    
+    <entry>
+      <title><![CDATA[基于Cobbler实现多版本操作系统自动部署]]></title>
+      <url>https://liang178.github.io/2016/08/11/cobbler/</url>
+      <content type="html"><![CDATA[<p><strong>前言</strong><br>&emsp;&emsp;在生产环境中，当需要批量部署几十甚至上百台服务器时，实现自动化安装操作系统尤为重要，按照传统的光盘引导安装是不可想象的；此前我们通过pxe+kickstart简单实现了自动化安装，但只能实现单一版本安装，当需要部署不同版本或不同引导模式（BIOS、EFI）时，此种方式就不够灵活。而Cobbler正是为了解决此问题而设计的，本文以CentOS为例简单介绍Cobbler的安装配置及使用。<br><strong>简介</strong><br>&emsp;&emsp;Cobbler是一个免费开源系统安装部署软件，用于自动化网络安装操作系统。Cobbler可以集成DNS, DHCP, 软件包更新以及配置管理，方便操作系统安装自动化。Cobbler 可以支持PXE启动, 操作系统重新安装,以及虚拟化客户机创建，包括Xen, KVM or VMware. Cobbler透过koan程序以支持虚拟化客户机安装。Cobbler可以支持管理复杂网路环境，如建立在链路聚合以太网的桥接环境。<br><strong>Cobbler组件结构图</strong></p>
+<div align="center"><br>  <img src="http://obbrvy8yl.bkt.clouddn.com/20160809cobbler.png"><br></div>
+
+<h4 id="安装cobbler及相关软件"><a href="#安装cobbler及相关软件" class="headerlink" title="安装cobbler及相关软件"></a>安装cobbler及相关软件</h4><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum -y install cobbler dhcp rsync</div><div class="line"># chkconfig tftp on</div><div class="line"># chkconfig rsync on</div></pre></td></tr></table></figure>
+<h4 id="配置cobbler"><a href="#配置cobbler" class="headerlink" title="配置cobbler"></a>配置cobbler</h4><h5 id="启动相关服务tftp、cobbler"><a href="#启动相关服务tftp、cobbler" class="headerlink" title="启动相关服务tftp、cobbler"></a>启动相关服务tftp、cobbler</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># service xinetd start</div><div class="line"># service cobblerd start</div></pre></td></tr></table></figure>
+<h5 id="检查cobbler配置"><a href="#检查cobbler配置" class="headerlink" title="检查cobbler配置"></a>检查cobbler配置</h5><figure class="highlight sh"><table><tr><td class="code"><pre><div class="line"><span class="comment"># cobbler check</span></div><div class="line">The following are potential configuration items that you may want to fix:</div><div class="line"> </div><div class="line">1 : The <span class="string">'server'</span> field <span class="keyword">in</span> /etc/cobbler/settings must be <span class="built_in">set</span> to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP <span class="keyword">for</span> the boot server as reachable by all machines that will use it.</div><div class="line">2 : For PXE to be functional, the <span class="string">'next_server'</span> field <span class="keyword">in</span> /etc/cobbler/settings must be <span class="built_in">set</span> to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network.</div><div class="line">3 : some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run <span class="string">'cobbler get-loaders'</span> to download them, or, <span class="keyword">if</span> you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files <span class="keyword">in</span> this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, and yaboot. The <span class="string">'cobbler get-loaders'</span> <span class="built_in">command</span> is the easiest way to resolve these requirements.</div><div class="line">4 : debmirror package is not installed, it will be required to manage debian deployments and repositories</div><div class="line">5 : ksvalidator was not found, install pykickstart</div><div class="line">6 : The default password used by the sample templates <span class="keyword">for</span> newly installed machines (default_password_crypted <span class="keyword">in</span> /etc/cobbler/settings) is still <span class="built_in">set</span> to <span class="string">'cobbler'</span> and should be changed, try: <span class="string">"openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'"</span> to generate new one</div><div class="line">7 : fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them</div><div class="line"> </div><div class="line">Restart cobblerd and <span class="keyword">then</span> run <span class="string">'cobbler sync'</span> to apply changes.</div></pre></td></tr></table></figure>
+<h5 id="根据提示修正cobbler配置"><a href="#根据提示修正cobbler配置" class="headerlink" title="根据提示修正cobbler配置"></a>根据提示修正cobbler配置</h5><ul>
+<li>指定cobbler服务器及dhcp服务器地址</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># vim /etc/cobbler/settings </div><div class="line">server: 192.168.18.45</div><div class="line">next_server: 192.168.18.45</div></pre></td></tr></table></figure>
+<ul>
+<li>获取cobbler引导程序 </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cobbler get-loaders</div></pre></td></tr></table></figure>
+<ul>
+<li>安装依赖包pykickstart  </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># yum -y install pykickstart</div></pre></td></tr></table></figure>
+<ul>
+<li>生成一个密码串，替换默认密码  </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># openssl passwd -1 -salt 345223 123456</div><div class="line">$1$345223$/jb8Mdzzy3SRfwM5RbG3D.</div><div class="line"># vim /etc/cobbler/settings</div><div class="line">default_password_crypted: &quot;$1$345223$/jb8Mdzzy3SRfwM5RbG3D.&quot;</div></pre></td></tr></table></figure>
+<ul>
+<li>第4、7项提示可忽略</li>
+</ul>
+<h5 id="同步cobbler配置，再检查配置是否报错"><a href="#同步cobbler配置，再检查配置是否报错" class="headerlink" title="同步cobbler配置，再检查配置是否报错"></a>同步cobbler配置，再检查配置是否报错</h5><figure class="highlight sh"><table><tr><td class="code"><pre><div class="line"><span class="comment"># cobbler sync</span></div><div class="line"><span class="comment"># service cobblerd restart</span></div><div class="line"><span class="comment"># cobbler check</span></div><div class="line">The following are potential configuration items that you may want to fix:</div><div class="line"> </div><div class="line">1 : debmirror package is not installed, it will be required to manage debian deployments and repositories</div><div class="line">2 : fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them</div><div class="line"> </div><div class="line">Restart cobblerd and <span class="keyword">then</span> run <span class="string">'cobbler sync'</span> to apply changes.</div></pre></td></tr></table></figure>
+<h5 id="准备kickstart文件"><a href="#准备kickstart文件" class="headerlink" title="准备kickstart文件"></a>准备kickstart文件</h5><figure class="highlight sh"><table><tr><td class="code"><pre><div class="line"><span class="comment"># cp /var/lib/cobbler/kickstarts/sample_end.ks /var/lib/cobbler/kickstarts/basic.ks</span></div><div class="line"><span class="comment"># vim /var/lib/cobbler/kickstarts/basic.ks </span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># kickstart template for Fedora 8 and later.</span></div><div class="line"><span class="comment"># (includes %end blocks)</span></div><div class="line"><span class="comment"># do not use with earlier distros</span></div><div class="line"> </div><div class="line"><span class="comment">#platform=x86, AMD64, or Intel EM64T</span></div><div class="line"><span class="comment"># System authorization information</span></div><div class="line">auth  --useshadow  --enablemd5</div><div class="line"><span class="comment"># System bootloader configuration</span></div><div class="line">bootloader --location=mbr</div><div class="line"><span class="comment"># Partition clearing information</span></div><div class="line">clearpart --all --initlabel</div><div class="line"><span class="comment"># Use text mode install</span></div><div class="line">text</div><div class="line"><span class="comment"># Firewall configuration</span></div><div class="line">firewall --disable</div><div class="line"><span class="comment"># Run the Setup Agent on first boot</span></div><div class="line">firstboot --disable</div><div class="line"><span class="comment"># System keyboard</span></div><div class="line">keyboard us</div><div class="line"><span class="comment"># System language</span></div><div class="line">lang en_US</div><div class="line"><span class="comment"># Use network installation</span></div><div class="line">url --url=<span class="variable">$tree</span></div><div class="line"><span class="comment"># If any cobbler repo definitions were referenced in the kickstart profile, include them here.</span></div><div class="line"><span class="variable">$yum_repo_stanza</span></div><div class="line"><span class="comment"># Network information</span></div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'network_config'</span>)</div><div class="line"><span class="comment"># Reboot after installation</span></div><div class="line">reboot</div><div class="line"> </div><div class="line"><span class="comment">#Root password</span></div><div class="line">rootpw --iscrypted <span class="variable">$default_password_crypted</span>   <span class="comment">#md5加密的密码串，默认保存在/etc/cobbler/settings</span></div><div class="line"><span class="comment"># SELinux configuration</span></div><div class="line">selinux --disabled</div><div class="line"><span class="comment"># Do not configure the X Window System</span></div><div class="line">skipx</div><div class="line"><span class="comment"># System timezone</span></div><div class="line">timezone  Asia/Chongqing</div><div class="line"><span class="comment"># Install OS instead of upgrade</span></div><div class="line">install</div><div class="line"><span class="comment"># Clear the Master Boot Record</span></div><div class="line">zerombr</div><div class="line"><span class="comment"># Allow anaconda to partition the system as needed</span></div><div class="line">part pv.01 --grow --size=1            </div><div class="line">part /boot --fstype=ext4 --size=400</div><div class="line">part /boot/efi --fstype=efi --size 200   <span class="comment">#EFI模式需要创建该分区</span></div><div class="line">volgroup VolGroup --pesize=4096 pv.01</div><div class="line">logvol / --fstype=ext4 --name=lv_root --vgname=VolGroup --grow --size=1024 --maxsize=51200</div><div class="line">logvol swap --name=lv_swap --vgname=VolGroup --grow --size=1984 --maxsize=4096</div><div class="line"> </div><div class="line"> </div><div class="line">%pre</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'log_ks_pre'</span>)</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'kickstart_start'</span>)</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'pre_install_network_config'</span>)</div><div class="line"><span class="comment"># Enable installation monitoring</span></div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'pre_anamon'</span>)</div><div class="line">%end</div><div class="line"> </div><div class="line">%packages</div><div class="line">@base</div><div class="line">@development</div><div class="line">@server-platform-devel</div><div class="line">samba-client</div><div class="line">lftp</div><div class="line">openssh-clients</div><div class="line">epel-release</div><div class="line"><span class="comment">#$SNIPPET('func_install_if_enabled')</span></div><div class="line">%end</div><div class="line"> </div><div class="line">%post --nochroot</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'log_ks_post_nochroot'</span>)</div><div class="line">%end</div><div class="line"> </div><div class="line">%post</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"alias net-pf-10 off\noptions ipv6 disable=1"</span> &gt;/etc/modprobe.d/ipv6.conf</div><div class="line"><span class="built_in">echo</span> <span class="string">"NETWORKING_IPV6=no"</span> &gt;&gt; /etc/sysconfig/network</div><div class="line">chkconfig ip6tables off</div><div class="line">cat &gt;&gt; /etc/security/limits.conf &lt;&lt;EOF</div><div class="line">*           soft    nproc           65535</div><div class="line">*           hard    nproc           65535</div><div class="line">*           soft    nofile          102400</div><div class="line">*           hard    nofile          204800</div><div class="line">EOF</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'log_ks_post'</span>)</div><div class="line"><span class="comment"># Start yum configuration</span></div><div class="line"><span class="variable">$yum_config_stanza</span></div><div class="line"><span class="comment"># End yum configuration</span></div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'post_install_kernel_options'</span>)</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'post_install_network_config'</span>)</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'func_register_if_enabled'</span>)</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'download_config_files'</span>)</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'koan_environment'</span>)</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'redhat_register'</span>)</div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'cobbler_register'</span>)</div><div class="line"><span class="comment"># Enable post-install boot notification</span></div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'post_anamon'</span>)</div><div class="line"><span class="comment"># Start final steps</span></div><div class="line"><span class="variable">$SNIPPET</span>(<span class="string">'kickstart_done'</span>)</div><div class="line"><span class="comment"># End final steps</span></div><div class="line">%end</div></pre></td></tr></table></figure>
+<h5 id="导入操作系统到cobbler并添加profile"><a href="#导入操作系统到cobbler并添加profile" class="headerlink" title="导入操作系统到cobbler并添加profile"></a>导入操作系统到cobbler并添加profile</h5><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mount /dev/sr0 /mnt  #挂载光驱</div><div class="line"># cobbler import --name=CentOS-6.6-x86_64 --path=/mnt  #导入操作系统</div><div class="line"># ll /var/www/cobbler/ks_mirror/  #验证一下是否导成功</div><div class="line"># cobbler profile add --name=CentOS-6.6-basic --distro=CentOS-6.6-x86_64 --kickstart=/var/lib/cobbler/kickstarts/basic.ks</div><div class="line"># cobbler profile list</div><div class="line"># cobbler sync</div></pre></td></tr></table></figure>
+<h4 id="配置yum源"><a href="#配置yum源" class="headerlink" title="配置yum源"></a>配置yum源</h4><p>配置本地yum仓库</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># mkdir /tmp/rpms</div><div class="line"># createrepo /tmp/rpms  #放入rpm包,执行此步骤</div><div class="line"># cobbler repo add --mirror=/tmp/rpms --name=local</div><div class="line"># cobbler reposync</div></pre></td></tr></table></figure>
+<p>配置epel源</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cobbler repo add --mirror=http://mirrors.aliyun.com/epel/6/x86_64/ --name=epel</div></pre></td></tr></table></figure>
+<p>同步epel仓库到本地,需要较长时间</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cobbler reposync --tries=3 --no-fail</div></pre></td></tr></table></figure>
+<p>查看已添加的repo</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cobbler repo list</div></pre></td></tr></table></figure>
+<p>添加repo到profile</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cobbler profile edit --name=CentOS-6.6-basic --repos=&quot;epel local&quot;</div></pre></td></tr></table></figure>
+<p>最后执行同步</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># cobbler sync</div></pre></td></tr></table></figure>
+<h4 id="配置dhcp服务器"><a href="#配置dhcp服务器" class="headerlink" title="配置dhcp服务器"></a>配置dhcp服务器</h4><h5 id="修改配置文件dhcpd-conf"><a href="#修改配置文件dhcpd-conf" class="headerlink" title="修改配置文件dhcpd.conf"></a>修改配置文件dhcpd.conf</h5><figure class="highlight sh"><table><tr><td class="code"><pre><div class="line"><span class="comment"># vim /etc/dhcp/dhcpd.conf</span></div><div class="line">option arch code 93 = unsigned <span class="built_in">integer</span> 16; <span class="comment"># RFC4578</span></div><div class="line">default-lease-time 600;</div><div class="line">max-lease-time 7200;</div><div class="line"><span class="built_in">log</span>-facility <span class="built_in">local</span>7;</div><div class="line">subnet 192.168.18.0 netmask 255.255.255.0 &#123;</div><div class="line">    range 192.168.18.150 192.168.18.230;</div><div class="line">    option domain-name <span class="string">"example.org"</span>;</div><div class="line">    option domain-name-servers 114.114.114.114,8.8.8.8;</div><div class="line">    option routers 192.168.18.1;</div><div class="line">          class <span class="string">"pxeclients"</span> &#123;</div><div class="line">                  match <span class="keyword">if</span> substring (option vendor-class-identifier, 0, 9) = <span class="string">"PXEClient"</span>;</div><div class="line">                  next-server 192.168.18.45;</div><div class="line"> </div><div class="line">                  <span class="keyword">if</span> option arch = 00:06 &#123;</div><div class="line">                          filename <span class="string">"grub/grub-x86.efi"</span>;</div><div class="line">                  &#125; <span class="keyword">else</span> <span class="keyword">if</span> option arch = 00:07 &#123;</div><div class="line">                          filename <span class="string">"grub/grub-x86_64.efi"</span>;</div><div class="line">                  &#125; <span class="keyword">else</span> &#123;</div><div class="line">                          filename <span class="string">"pxelinux.0"</span>;</div><div class="line">                  &#125;</div><div class="line">        &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="部署完毕，重新启动相关服务"><a href="#部署完毕，重新启动相关服务" class="headerlink" title="部署完毕，重新启动相关服务"></a>部署完毕，重新启动相关服务</h4><figure class="highlight plain"><table><tr><td class="code"><pre><div class="line"># service dhcpd restart</div><div class="line"># service xinetd restart</div><div class="line"># service httpd restart</div><div class="line"># service cobblerd restart</div></pre></td></tr></table></figure>
+<p>部署完毕后可以通过web界面进行管理 <a href="http://cobbler_server/cobbler_web" target="_blank" rel="external">http://cobbler_server/cobbler_web</a></p>
+<h4 id="client安装操作系统测试"><a href="#client安装操作系统测试" class="headerlink" title="client安装操作系统测试"></a>client安装操作系统测试</h4><p>网络启动EFI模式，某些服务器可能不兼容<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160809cobbler1.png" alt=""><br>网络启动BIOS模式<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160809cobbler2.png" alt=""><br>开始安装<br><img src="http://obbrvy8yl.bkt.clouddn.com/20160809cobbler3.png" alt=""><br><strong>结语</strong><br>&emsp;&emsp;一个简单的cobbler服务器到此部署完毕，本文只是简要地介绍了cobbler服务器的安装及配置；更多详情请参考官方文档<a href="http://cobbler.github.io/manuals/" target="_blank" rel="external">http://cobbler.github.io/manuals/</a></p>
+]]></content>
+    </entry>
+    
+  
+  
+</search>
